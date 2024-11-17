@@ -294,18 +294,18 @@ class HooksViewer extends \Piwik\Plugin
             "Archiving.getIdSitesToArchiveWhenNoVisits" => "ArchivingGetIdSitesToArchiveWhenNoVisits",
             "Archiving.getIdSitesToMarkArchivesAsInvalidated" => "ArchivingGetIdSitesToMarkArchivesAsInvalidated",
             "Archiving.makeNewArchiverObject" => "ArchivingMakeNewArchiverObject",
-            "AssetManager.addStylesheets" => "AssetManagerAddStylesheets",
+            //"AssetManager.addStylesheets" => "AssetManagerAddStylesheets",
             "AssetManager.filterMergedJavaScripts" => "AssetManagerFilterMergedJavaScripts",
-            "AssetManager.filterMergedStylesheets" => "AssetManagerFilterMergedStylesheets",
+            //"AssetManager.filterMergedStylesheets" => "AssetManagerFilterMergedStylesheets",
             "AssetManager.getJavaScriptFiles" => "AssetManagerGetJavaScriptFiles",
-            "AssetManager.getStylesheetFiles" => "AssetManagerGetStylesheetFiles",
+            //"AssetManager.getStylesheetFiles" => "AssetManagerGetStylesheetFiles",
             //"Category.addSubcategories" => "CategoryAddSubcategories",
             //"Changes.filterChanges" => "ChangesFilterChanges",
             "CliMulti.supportsAsync" => "CliMultiSupportsAsync",
             "Config.badConfigurationFile" => "ConfigBadConfigurationFile",
-            "Config.beforeSave" => "ConfigBeforeSave",
+            //"Config.beforeSave" => "ConfigBeforeSave",
             "Config.NoConfigurationFile" => "ConfigNoConfigurationFile",
-            "Console.filterCommands" => "ConsoleFilterCommands",
+            //"Console.filterCommands" => "ConsoleFilterCommands",
             "Controller.triggerAdminNotifications" => "ControllerTriggerAdminNotifications",
             "Core.configFileChanged" => "CoreConfigFileChanged",
             "Core.configFileDeleted" => "CoreConfigFileDeleted",
@@ -331,7 +331,7 @@ class HooksViewer extends \Piwik\Plugin
             //"Dimension.filterDimensions" => "DimensionFilterDimensions",
             "Environment.bootstrapped" => "EnvironmentBootstrapped",
             "Feedback.showQuestionBanner" => "FeedbackShowQuestionBanner",
-            "Filesystem.allCachesCleared" => "FilesystemAllCachesCleared",
+            //"Filesystem.allCachesCleared" => "FilesystemAllCachesCleared",
             "FrontController.modifyErrorPage" => "FrontControllerModifyErrorPage",
             //"Http.sendHttpRequest" => "HttpSendHttpRequest",
             "Http.sendHttpRequest.end" => "HttpSendHttpRequestEnd",
@@ -488,20 +488,26 @@ class HooksViewer extends \Piwik\Plugin
     }
 
 
-    public function getStylesheetFiles(&$files)
-    {
-        $files[] = "plugins/HooksViewer/stylesheets/style.less";
-    }
-
-    public function getJavaScriptFiles(&$files)
-    {
-        $files[] = "plugins/HooksViewer/javascripts/script.js";
-    }
-
     public function displayHooksViewerItem($hookName, $args)
     {
-        echo '<div class="hooks-viewer-item" style="display: inline-block; padding: 2px; border: 1px solid black; margin: 2px; font-size: 12px;">' . $hookName . '</div>';
+        echo'<details class="hv-event" style="display: inline-block;line-height: normal;border: 1px solid #000;padding: 4px;z-index: 99999;border-radius: 2px;font-size: 12px;margin: 2px;max-width: 100%;box-sizing: border-box;">';
+        echo '<summary>' . $hookName . '</summary>';
+
+        if($args):
+        echo '<pre style="box-sizing: border-box; margin: 0;">';
+        echo '<code>';
+        print_r($args);
+
+        echo '</code></pre>';
+        endif;
+        echo '</details>';
     }
+
+
+    /**
+     * Handle event values
+     */
+
 
     function AccessCapabilityAddCapabilities()
     {
@@ -685,11 +691,9 @@ class HooksViewer extends \Piwik\Plugin
         return $args;
     }
 
-    function AssetManagerGetStylesheetFiles()
+    function AssetManagerGetStylesheetFiles($args)
     {
-        $args = func_get_args();
         $this->displayHooksViewerItem('AssetManager.getStylesheetFiles', $args);
-        return $args;
     }
 
     function CategoryAddSubcategories()
