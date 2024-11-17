@@ -1,0 +1,34 @@
+{
+    "name": "HooksViewer",
+    "description": "Easily visualize event hooks in Matomo",
+    "version": "0.1.0",
+    "theme": false,
+    "require": {
+        "matomo": ">=5.0.0-stable,<6.0.0-b1"
+    },
+    "authors": [
+        {
+            "name": "Openmost",
+            "email": "ronan@openmost.io",
+            "homepage": "https:\/\/openmost.io"
+        }
+    ],
+    "support": {
+        "email": "ronan@openmost.io",
+        "issues": "https:\/\/github.com\/openmost\/ChatGPT\/issues",
+        "source": "https:\/\/github.com\/openmost\/ChatGPT"
+    },
+    "homepage": "https:\/\/openmost.io\/products\/chatgpt\/",
+    "license": "GPL v3+",
+    "keywords": [
+        "chatgpt",
+        "chat",
+        "gpt",
+        "ai",
+        "assistant",
+        "assistants",
+        "insight",
+        "insights"
+    ],
+    "category": "development"
+}
