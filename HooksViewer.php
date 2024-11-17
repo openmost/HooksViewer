@@ -294,16 +294,16 @@ class HooksViewer extends \Piwik\Plugin
             "Archiving.getIdSitesToArchiveWhenNoVisits" => "ArchivingGetIdSitesToArchiveWhenNoVisits",
             "Archiving.getIdSitesToMarkArchivesAsInvalidated" => "ArchivingGetIdSitesToMarkArchivesAsInvalidated",
             "Archiving.makeNewArchiverObject" => "ArchivingMakeNewArchiverObject",
-            //"AssetManager.addStylesheets" => "AssetManagerAddStylesheets",
+            "AssetManager.addStylesheets" => "AssetManagerAddStylesheets",
             "AssetManager.filterMergedJavaScripts" => "AssetManagerFilterMergedJavaScripts",
-            //"AssetManager.filterMergedStylesheets" => "AssetManagerFilterMergedStylesheets",
+            "AssetManager.filterMergedStylesheets" => "AssetManagerFilterMergedStylesheets",
             "AssetManager.getJavaScriptFiles" => "AssetManagerGetJavaScriptFiles",
-            //"AssetManager.getStylesheetFiles" => "AssetManagerGetStylesheetFiles",
+            "AssetManager.getStylesheetFiles" => "AssetManagerGetStylesheetFiles",
             //"Category.addSubcategories" => "CategoryAddSubcategories",
             //"Changes.filterChanges" => "ChangesFilterChanges",
             "CliMulti.supportsAsync" => "CliMultiSupportsAsync",
             "Config.badConfigurationFile" => "ConfigBadConfigurationFile",
-            //"Config.beforeSave" => "ConfigBeforeSave",
+            "Config.beforeSave" => "ConfigBeforeSave",
             "Config.NoConfigurationFile" => "ConfigNoConfigurationFile",
             //"Console.filterCommands" => "ConsoleFilterCommands",
             "Controller.triggerAdminNotifications" => "ControllerTriggerAdminNotifications",
@@ -490,17 +490,7 @@ class HooksViewer extends \Piwik\Plugin
 
     public function displayHooksViewerItem($hookName, $args)
     {
-        echo'<details class="hv-event" style="display: inline-block;line-height: normal;border: 1px solid #000;padding: 4px;z-index: 99999;border-radius: 2px;font-size: 12px;margin: 2px;max-width: 100%;box-sizing: border-box;">';
-        echo '<summary>' . $hookName . '</summary>';
-
-        if($args):
-        echo '<pre style="box-sizing: border-box; margin: 0;">';
-        echo '<code>';
-        print_r($args);
-
-        echo '</code></pre>';
-        endif;
-        echo '</details>';
+        echo'<div class="hv-event">' . $hookName . '</div>';
     }
 
 
@@ -691,9 +681,10 @@ class HooksViewer extends \Piwik\Plugin
         return $args;
     }
 
-    function AssetManagerGetStylesheetFiles($args)
+    function AssetManagerGetStylesheetFiles(&$files)
     {
-        $this->displayHooksViewerItem('AssetManager.getStylesheetFiles', $args);
+        $files[] = "plugins/HooksViewer/stylesheets/style.less";
+        $this->displayHooksViewerItem('AssetManager.getStylesheetFiles', $files);
     }
 
     function CategoryAddSubcategories()
