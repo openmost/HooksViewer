@@ -15,20 +15,17 @@
     ],
     "support": {
         "email": "ronan@openmost.io",
-        "issues": "https:\/\/github.com\/openmost\/ChatGPT\/issues",
-        "source": "https:\/\/github.com\/openmost\/ChatGPT"
+        "issues": "https:\/\/github.com\/openmost\/HooksViewer\/issues",
+        "source": "https:\/\/github.com\/openmost\/HooksViewer"
     },
-    "homepage": "https:\/\/openmost.io\/products\/chatgpt\/",
+    "homepage": "https:\/\/openmost.io\/products\/hooks-viewer\/",
     "license": "GPL v3+",
     "keywords": [
-        "chatgpt",
-        "chat",
-        "gpt",
-        "ai",
-        "assistant",
-        "assistants",
-        "insight",
-        "insights"
+        "hooks",
+        "viewer",
+        "event",
+        "events",
+        "dev"
     ],
     "category": "development"
 }
