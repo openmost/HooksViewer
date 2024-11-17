@@ -1,7 +1,7 @@
 {
     "name": "HooksViewer",
     "description": "Easily visualize event hooks in Matomo",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "theme": false,
     "require": {
         "matomo": ">=5.0.0-stable,<6.0.0-b1"
