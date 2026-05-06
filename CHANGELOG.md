@@ -1,5 +1,9 @@
 ## Changelog
 
+### v2.0.1
+
+update: README.md
+
 ### v2.0.0
 
 Major rewrite. The plugin now covers (almost) every event Matomo dispatches

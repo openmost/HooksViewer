@@ -1,10 +1,12 @@
 # Matomo HooksViewer Plugin
 
+## Description
+
 > **Never install this plugin on a production instance.**
 > It is a development tool. Every page exposes internal arguments,
 > appends to a log file, and adds DOM elements to Matomo's UI.
 
-## What it does
+### What it does
 
 HooksViewer subscribes to **every event Matomo dispatches** and shows you,
 in real time, which hooks fire — where they fire, in what order, and with
@@ -27,7 +29,7 @@ The plugin **never injects markup into JSON, XML, CSV, image, or tracker
 responses**, so Matomo's API stays valid and the dashboard, widgets, and
 third-party clients keep working.
 
-## How the hook list stays current
+### How the hook list stays current
 
 The list of subscribed events is **discovered automatically** by scanning
 `core/` and `plugins/` for `Piwik::postEvent('…')` call sites the first
@@ -37,7 +39,7 @@ The result is cached in `tmp/cache/hooksviewer-catalog.php`.
 You do not have to update the plugin when Matomo introduces new events —
 they show up the next time the cache is rebuilt.
 
-## Install
+### Install
 
 This plugin is published on the official Matomo Marketplace.
 
@@ -45,23 +47,23 @@ This plugin is published on the official Matomo Marketplace.
 2. Search for **HooksViewer**.
 3. Install, then activate.
 
-## Use
+### Use
 
 1. Activate the plugin while you are exploring or debugging.
 2. Browse the page or trigger the workflow you care about.
 3. Read the inline `<details>` blocks, or `tail -f` the log.
 4. **Deactivate the plugin when you are done.**
 
-## Requirements
+### Requirements
 
 - Matomo 5.x
 - PHP 7.4+
 
-## Author
+### Author
 
 Built by [Openmost](https://openmost.io). Issues and pull requests welcome
 at <https://github.com/openmost/HooksViewer>.
 
-## License
+### License
 
 GPL v3 or later.
