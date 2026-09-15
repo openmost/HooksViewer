@@ -1,5 +1,31 @@
 ## Changelog
 
+### v6.1.0
+
+**Search in the panel**
+
+- The HooksViewer panel is now a Vue component with a search field:
+  filter the hooks by name, or inside their arguments.
+- Each hook links to its entry in the new hook catalog.
+- The list is only rendered once the panel is opened, so pages with
+  many widgets stay fast.
+
+**Hook catalog**
+
+- New *Administration → Diagnostic → Hooks Viewer* page, for super
+  users: every known hook with its description and parameters (from the
+  source docblock), the file and line where it is posted, the plugins
+  listening to it, a `registerEvents()` snippet and a link to the
+  developer reference.
+- Search, filter by category, show only hooks with listeners, rescan
+  the source code on demand.
+- Hooks that are listened to but built at runtime (like
+  `Controller.CoreHome.index`) are listed as dynamic.
+
+**Other**
+
+- English and French translations.
+
 ### v6.0.0
 
 Matomo 6 compatibility, and a rebuilt inline output that no longer

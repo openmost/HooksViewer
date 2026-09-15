@@ -1,0 +1,14 @@
+{% extends 'admin.twig' %}
+
+{% set title %}{{ 'HooksViewer_HooksViewer'|translate }}{% endset %}
+
+{% block content %}
+<div
+    vue-entry="HooksViewer.HooksCatalog"
+    hooks="{{ hooks|json_encode }}"
+    rescan-url="{{ rescanUrl|json_encode }}"
+    rescanned="{{ rescanned|json_encode }}"
+    initial-hook="{{ initialHook|json_encode }}"
+    log-path="{{ logPath|json_encode }}"
+></div>
+{% endblock %}

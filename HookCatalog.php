@@ -13,6 +13,10 @@ namespace Piwik\Plugins\HooksViewer;
  * Discovers every Matomo event name by statically scanning the codebase for
  * Piwik::postEvent('…') / $dispatcher->postEvent('…') call sites.
  *
+ * For each event it also records where it is posted (file and line) and the
+ * docblock written right above the call, which core uses to document events
+ * (description and @param tags).
+ *
  * The result is cached in tmp/cache/ and invalidated whenever the most-recent
  * mtime across scanned source trees changes, so adding a new core or plugin
  * file forces a rescan on the next request, with no manual list to maintain.
@@ -27,7 +31,7 @@ namespace Piwik\Plugins\HooksViewer;
 class HookCatalog
 {
     /** Cache version: bump when the discovery logic changes shape. */
-    private const CACHE_VERSION = 2;
+    private const CACHE_VERSION = 3;
 
     /** Directories to walk, relative to PIWIK_INCLUDE_PATH. */
     private const SCAN_ROOTS = ['core', 'plugins'];
@@ -40,6 +44,12 @@ class HookCatalog
      */
     private const SIGNATURE_TTL_SECONDS = 300;
 
+    /** Longest docblock kept for an event, anything longer is not an event description. */
+    private const DOCBLOCK_MAX_LENGTH = 8000;
+
+    /** In-memory copy of the cache payload for the current request. */
+    private static $payload = null;
+
     /**
      * Return the discovered list of fully-qualified event names. Reads from the
      * filesystem cache if it is still fresh; rebuilds otherwise.
@@ -48,39 +58,23 @@ class HookCatalog
      */
     public function getHooks(): array
     {
-        $cacheFile = $this->cacheFile();
+        return $this->load()['hooks'];
+    }
 
-        if (is_readable($cacheFile)) {
-            $age = time() - (int)@filemtime($cacheFile);
-            $cached = @include $cacheFile;
+    /**
+     * Where each event is posted and how it is documented.
+     *
+     * @return array<string, array{locations: array<array{file: string, line: int}>, description: string, params: array<array{type: string, name: string, description: string}>}>
+     */
+    public function getHookDetails(): array
+    {
+        return $this->load()['details'];
+    }
 
-            if (
-                is_array($cached)
-                && ($cached['version'] ?? null) === self::CACHE_VERSION
-                && isset($cached['hooks']) && is_array($cached['hooks'])
-            ) {
-                if ($age < self::SIGNATURE_TTL_SECONDS) {
-                    // Within TTL: trust the cache without rescanning mtimes.
-                    return $cached['hooks'];
-                }
-                if (($cached['signature'] ?? null) === $this->sourceSignature()) {
-                    // Signature still matches: refresh the file mtime to push the TTL forward.
-                    @touch($cacheFile);
-                    return $cached['hooks'];
-                }
-            }
-        }
-
-        $hooks = $this->scan();
-
-        $payload = "<?php\nreturn " . var_export([
-            'version'   => self::CACHE_VERSION,
-            'signature' => $this->sourceSignature(),
-            'hooks'     => $hooks,
-        ], true) . ";\n";
-        @file_put_contents($cacheFile, $payload, LOCK_EX);
-
-        return $hooks;
+    /** Unix timestamp of the last scan. */
+    public function getScannedAt(): int
+    {
+        return (int) $this->load()['scannedAt'];
     }
 
     /**
@@ -90,10 +84,55 @@ class HookCatalog
      */
     public function invalidate(): void
     {
+        self::$payload = null;
         $cacheFile = $this->cacheFile();
         if (is_file($cacheFile)) {
             @unlink($cacheFile);
         }
+    }
+
+    private function load(): array
+    {
+        if (self::$payload !== null) {
+            return self::$payload;
+        }
+
+        $cacheFile = $this->cacheFile();
+
+        if (is_readable($cacheFile)) {
+            $age = time() - (int) @filemtime($cacheFile);
+            $cached = @include $cacheFile;
+
+            if (
+                is_array($cached)
+                && ($cached['version'] ?? null) === self::CACHE_VERSION
+                && isset($cached['hooks'], $cached['details'])
+                && is_array($cached['hooks']) && is_array($cached['details'])
+            ) {
+                if ($age < self::SIGNATURE_TTL_SECONDS) {
+                    // Within TTL: trust the cache without rescanning mtimes.
+                    return self::$payload = $cached;
+                }
+                if (($cached['signature'] ?? null) === $this->sourceSignature()) {
+                    // Signature still matches: refresh the file mtime to push the TTL forward.
+                    @touch($cacheFile);
+                    return self::$payload = $cached;
+                }
+            }
+        }
+
+        $details = $this->scan();
+
+        $payload = [
+            'version'   => self::CACHE_VERSION,
+            'signature' => $this->sourceSignature(),
+            'scannedAt' => time(),
+            'hooks'     => array_keys($details),
+            'details'   => $details,
+        ];
+        @file_put_contents($cacheFile, "<?php\nreturn " . var_export($payload, true) . ";\n", LOCK_EX);
+
+        return self::$payload = $payload;
     }
 
     /**
@@ -183,11 +222,20 @@ class HookCatalog
      * Same-file constant references (self::FOO, static::FOO) are resolved
      * against `const FOO = 'value'` declarations in that file.
      *
-     * @return string[]
+     * @return array<string, array> event name => details, sorted by name
      */
     private function scan(): array
     {
-        $hooks = [];
+        $details = [];
+
+        // Capture the first argument to postEvent: string literal, constant, or self::CONST.
+        // Pattern explained: postEvent ( <ws> ( '...' | "..." | self::CONST | static::CONST | CONST_NAME )
+        $pattern = '/postEvent\s*\(\s*(?P<arg>'
+            . "'(?:\\\\'|[^'])*'"           // single-quoted string
+            . '|"(?:\\\\"|[^"])*"'          // double-quoted string
+            . '|(?:self|static|[A-Za-z_\\\\][A-Za-z0-9_\\\\]*)::[A-Z_][A-Z0-9_]*' // ClassRef::CONST
+            . '|[A-Z][A-Z0-9_]*'            // bare CONST
+            . ')/';
 
         foreach ($this->phpFiles() as $file) {
             $source = @file_get_contents($file);
@@ -195,38 +243,113 @@ class HookCatalog
                 continue;
             }
 
-            $constants = $this->extractConstants($source);
-
-            // Capture the first argument to postEvent: string literal, constant, or self::CONST.
-            // Pattern explained: postEvent ( <ws> ( '...' | "..." | self::CONST | static::CONST | CONST_NAME )
-            $pattern = '/postEvent\s*\(\s*(?P<arg>'
-                . "'(?:\\\\'|[^'])*'"           // single-quoted string
-                . '|"(?:\\\\"|[^"])*"'          // double-quoted string
-                . '|(?:self|static|[A-Za-z_\\\\][A-Za-z0-9_\\\\]*)::[A-Z_][A-Z0-9_]*' // ClassRef::CONST
-                . '|[A-Z][A-Z0-9_]*'            // bare CONST
-                . ')/';
-
-            if (!preg_match_all($pattern, $source, $matches)) {
+            if (!preg_match_all($pattern, $source, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
                 continue;
             }
 
-            foreach ($matches['arg'] as $rawArg) {
-                $resolved = $this->resolveArgument($rawArg, $constants);
-                if ($resolved !== null) {
-                    $hooks[$resolved] = true;
+            $constants = $this->extractConstants($source);
+            $relativePath = $this->relativePath($file);
+
+            foreach ($matches as $match) {
+                $name = $this->resolveArgument($match['arg'][0], $constants);
+                if ($name === null) {
+                    continue;
+                }
+
+                $offset = $match[0][1];
+                if (!isset($details[$name])) {
+                    $details[$name] = ['locations' => [], 'description' => '', 'params' => []];
+                }
+                $details[$name]['locations'][] = [
+                    'file' => $relativePath,
+                    'line' => $offset > 0 ? substr_count($source, "\n", 0, $offset) + 1 : 1,
+                ];
+
+                if ($details[$name]['description'] === '' && $details[$name]['params'] === []) {
+                    [$description, $params] = $this->parseDocBlock($this->docBlockBefore($source, $offset));
+                    $details[$name]['description'] = $description;
+                    $details[$name]['params'] = $params;
                 }
             }
         }
 
-        $hooks = array_keys($hooks);
-        sort($hooks, SORT_STRING);
-        return $hooks;
+        ksort($details, SORT_STRING);
+        return $details;
+    }
+
+    /**
+     * The docblock ending on the line right above the statement that posts the
+     * event, or an empty string when there is none.
+     */
+    private function docBlockBefore(string $source, int $offset): string
+    {
+        $lineStart = strrpos(substr($source, 0, $offset), "\n");
+        if ($lineStart === false) {
+            return '';
+        }
+
+        $before = rtrim(substr($source, 0, $lineStart));
+        if (substr($before, -2) !== '*/') {
+            return '';
+        }
+
+        $start = strrpos($before, '/**');
+        if ($start === false || strlen($before) - $start > self::DOCBLOCK_MAX_LENGTH) {
+            return '';
+        }
+
+        return substr($before, $start);
+    }
+
+    /**
+     * Split a docblock into its free text and its @param tags. Other tags
+     * (@api, @deprecated, …) are dropped.
+     *
+     * @return array{0: string, 1: array<array{type: string, name: string, description: string}>}
+     */
+    private function parseDocBlock(string $docBlock): array
+    {
+        if ($docBlock === '') {
+            return ['', []];
+        }
+
+        $text = [];
+        $params = [];
+        $inTag = false;
+
+        foreach (preg_split('/\R/', $docBlock) as $line) {
+            $line = preg_replace('/^\s*(?:\/\*\*|\*\/|\*)\s?/', '', $line);
+            $line = rtrim(preg_replace('/\s*\*\/\s*$/', '', $line));
+            $trimmed = trim($line);
+
+            if (preg_match('/^@param\s+(\S+)(?:\s+(&?\$\S+))?\s*(.*)$/', $trimmed, $m)) {
+                $params[] = ['type' => $m[1], 'name' => $m[2] ?? '', 'description' => $m[3] ?? ''];
+                $inTag = true;
+                continue;
+            }
+            if (strpos($trimmed, '@') === 0) {
+                $inTag = false;
+                continue;
+            }
+            if ($inTag) {
+                if ($trimmed === '') {
+                    $inTag = false;
+                } elseif ($params !== []) {
+                    $params[count($params) - 1]['description'] = trim($params[count($params) - 1]['description'] . ' ' . $trimmed);
+                }
+                continue;
+            }
+
+            $text[] = $line;
+        }
+
+        return [trim(implode("\n", $text)), $params];
     }
 
     /**
      * Map `const NAME = 'value';` declarations to their string values. Captures
      * both class constants and top-level `const FOO = '…'`. Anything that is
-     * not a single-line string literal is skipped, we only need the easy wins.
+     * not a single-line string literal is skipped: we only need the easy wins.
      *
      * @return array<string,string>
      */
@@ -292,10 +415,7 @@ class HookCatalog
             return false;
         }
         // Must look like a Matomo event (dotted identifier path).
-        if (!preg_match('/^[A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z][A-Za-z0-9]*)+$/', $name)) {
-            return false;
-        }
-        return true;
+        return (bool) preg_match('/^[A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z][A-Za-z0-9]*)+$/', $name);
     }
 
     private function stripQuotes(string $literal): string
@@ -310,6 +430,16 @@ class HookCatalog
         $inner = substr($literal, 1, -1);
         // Best-effort unescape: we only care about \\' and \\" anyway.
         return str_replace(['\\' . $quote, '\\\\'], [$quote, '\\'], $inner);
+    }
+
+    /** Path relative to the Matomo root, with forward slashes (e.g. core/FrontController.php). */
+    private function relativePath(string $file): string
+    {
+        $base = $this->basePath() . DIRECTORY_SEPARATOR;
+        if (strpos($file, $base) === 0) {
+            $file = substr($file, strlen($base));
+        }
+        return str_replace('\\', '/', $file);
     }
 
     private function basePath(): string

@@ -4,21 +4,53 @@ HooksViewer is a development tool that subscribes to every Matomo event
 and surfaces them while you are browsing the Matomo UI or exercising the
 API.
 
-### Two outputs
+### Inline panel
 
-**Inline panel**: every HTML response (full pages, widgets, AJAX HTML
-fragments) gets a collapsible *HooksViewer* panel, visible to super
-users only. Its summary shows how many hooks fired and the request id.
-Expand it to list the hooks in the order they fired, then expand a hook
-to see a clean, indented dump of its arguments.
+Every HTML response (full pages, widgets, AJAX HTML fragments) gets a
+collapsible *HooksViewer* panel, visible to super users only. Its
+summary shows how many hooks fired and the request id. Expand it to
+list the hooks in the order they fired, then expand a hook to see a
+clean, indented dump of its arguments.
 
 - Full pages show the panel at the very top of the page.
 - Each dashboard widget shows its own panel, so hooks like
   `ViewDataTable.filterViewDataTable`, `Visualization.beforeRender` or
   `Metrics.isLowerValueBetter` are visible for the widget that
   triggered them.
+- Type in the search field to filter the hooks by name. Every word must
+  match. Tick *Search in arguments* to also search the argument dumps,
+  e.g. to find which hook receives a given report or setting.
+- *Open in the hook catalog* jumps to the documentation of the hook.
 
-**Log file**: `tmp/logs/hooksviewer.log` receives one line per fired
+The panel is a Vue component. On the rare responses where Matomo does
+not compile Vue components (error pages, some AJAX HTML), it falls back
+to the plain list of hook names.
+
+### Hook catalog
+
+*Administration → Diagnostic → Hooks Viewer* (super users only) lists
+every known hook:
+
+- **Description and parameters**, taken from the docblock written right
+  above the `postEvent()` call, which is how Matomo documents its
+  events.
+- **Posted in**: the file and line of each call site.
+- **Listeners**: the activated plugins subscribing to the hook in
+  `registerEvents()`, and observers declared in `observers.global`.
+- A **`registerEvents()` snippet** to listen to the hook from your own
+  plugin, and a link to the developer reference.
+
+Search by hook name, description, listener or file, filter by category
+(the part before the first dot, e.g. `Request`), or show only the hooks
+that have listeners. Hooks marked **dynamic** are listened to but their
+name is built at runtime (like `Controller.CoreHome.index`), so they
+are not found in the source code.
+
+*Rescan the source code* rebuilds the catalog immediately.
+
+### Log file
+
+`tmp/logs/hooksviewer.log` receives one line per fired
 event from **every** request, including JSON API calls, tracker hits,
 console commands, and requests made by users who cannot see the panel.
 Each line carries a timestamp, a short request id (the same one as in

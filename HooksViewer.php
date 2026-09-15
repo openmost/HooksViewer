@@ -35,6 +35,38 @@ class HooksViewer extends \Piwik\Plugin
     /** Maximum displayed length of a string value (longer values are truncated). */
     private const DESCRIBE_MAX_STRING = 240;
 
+    /** Translations used by the Vue components (HooksPanel, HooksCatalog). */
+    private const CLIENT_SIDE_TRANSLATIONS = [
+        'HooksViewer_HooksViewer',
+        'HooksViewer_CatalogIntro',
+        'HooksViewer_ProductionWarning',
+        'HooksViewer_LogFile',
+        'HooksViewer_SearchPlaceholder',
+        'HooksViewer_SearchInArguments',
+        'HooksViewer_AllCategories',
+        'HooksViewer_OnlyWithListeners',
+        'HooksViewer_Showing',
+        'HooksViewer_HooksCount',
+        'HooksViewer_OneHook',
+        'HooksViewer_ListenedCount',
+        'HooksViewer_RequestId',
+        'HooksViewer_MoreInLog',
+        'HooksViewer_NoMatch',
+        'HooksViewer_Hook',
+        'HooksViewer_Description',
+        'HooksViewer_Listeners',
+        'HooksViewer_PostedIn',
+        'HooksViewer_Parameters',
+        'HooksViewer_NoDescription',
+        'HooksViewer_Dynamic',
+        'HooksViewer_DynamicHelp',
+        'HooksViewer_ListenExample',
+        'HooksViewer_DeveloperReference',
+        'HooksViewer_OpenInCatalog',
+        'HooksViewer_Rescan',
+        'HooksViewer_Rescanned',
+    ];
+
     /** Cached decision: can this request carry an HTML panel at all? null = not yet decided. */
     private static $htmlRequest = null;
 
@@ -91,6 +123,12 @@ class HooksViewer extends \Piwik\Plugin
         foreach ($this->getHooks() as $hookName) {
             $map[$hookName] = self::hookToMethod($hookName);
         }
+
+        // Needed by the plugin itself, whatever the scan found.
+        foreach (['AssetManager.getStylesheetFiles', 'Translate.getClientSideTranslationKeys'] as $hookName) {
+            $map[$hookName] = self::hookToMethod($hookName);
+        }
+
         return $map;
     }
 
@@ -156,8 +194,7 @@ class HooksViewer extends \Piwik\Plugin
      * Matomo's EventDispatcher uses call_user_func_array, which does not preserve
      * references unless the receiver declares them. Our generic receiver therefore
      * cannot mutate by-ref args, which is fine because we only observe.
-     * Hooks needing real by-ref behavior (e.g. AssetManager.getStylesheetFiles)
-     * are handled via dedicated methods below.
+     * Hooks needing real by-ref behavior are handled via dedicated methods below.
      */
     public function __call($name, $arguments)
     {
@@ -170,13 +207,23 @@ class HooksViewer extends \Piwik\Plugin
     }
 
     /**
-     * Explicit handler: this one needs by-reference access to register the
-     * plugin's own stylesheet. Overrides the generic dispatch for this hook.
+     * Explicit handler: registers the plugin's own stylesheet by reference.
      */
     public function hook_AssetManager_getStylesheetFiles(&$files)
     {
         $files[] = 'plugins/HooksViewer/stylesheets/style.less';
         $this->captureHook('AssetManager.getStylesheetFiles', [$files]);
+    }
+
+    /**
+     * Explicit handler: exposes the translations of the Vue components by reference.
+     */
+    public function hook_Translate_getClientSideTranslationKeys(&$translationKeys)
+    {
+        foreach (self::CLIENT_SIDE_TRANSLATIONS as $translationKey) {
+            $translationKeys[] = $translationKey;
+        }
+        $this->captureHook('Translate.getClientSideTranslationKeys', [$translationKeys]);
     }
 
     /**
@@ -340,6 +387,12 @@ class HooksViewer extends \Piwik\Plugin
         return $match[0][1] + strlen($match[0][0]);
     }
 
+    /**
+     * Mount point of the HooksViewer.HooksPanel Vue component, which renders the
+     * searchable list from the JSON props. Its content is only a fallback for
+     * responses where Vue components are not compiled (error pages, some AJAX
+     * HTML): the hook names, without their arguments.
+     */
     private static function renderPendingEvents(): string
     {
         $events = array_slice(self::$events, self::$renderedCount);
@@ -349,14 +402,17 @@ class HooksViewer extends \Piwik\Plugin
             return '';
         }
 
-        $items = '';
-        foreach ($events as [$index, $hookName, $argsText]) {
-            $items .= '<details class="hv-event" data-hook="' . htmlspecialchars($hookName, ENT_QUOTES) . '">'
-                . '<summary><span class="hv-event-index">#' . $index . '</span> '
-                . htmlspecialchars($hookName, ENT_QUOTES)
-                . '</summary>'
-                . '<pre class="hv-args"><code>' . htmlspecialchars($argsText, ENT_QUOTES) . '</code></pre>'
-                . '</details>';
+        $droppedCount = self::$droppedEvents;
+        self::$droppedEvents = 0;
+
+        $jsonFlags = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR;
+        $attribute = static function ($value) use ($jsonFlags): string {
+            return htmlspecialchars((string) json_encode($value, $jsonFlags), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        };
+
+        $names = '';
+        foreach ($events as [$index, $hookName]) {
+            $names .= '<li value="' . $index . '">' . htmlspecialchars($hookName, ENT_QUOTES) . '</li>';
         }
 
         $count = count($events);
@@ -366,13 +422,17 @@ class HooksViewer extends \Piwik\Plugin
             $count > 1 ? 's' : '',
             htmlspecialchars(self::shortRequestId(), ENT_QUOTES)
         );
-        if (self::$droppedEvents > 0) {
-            $summary .= sprintf(', %d more in tmp/logs/hooksviewer.log', self::$droppedEvents);
-            self::$droppedEvents = 0;
+        if ($droppedCount > 0) {
+            $summary .= sprintf(', %d more in tmp/logs/hooksviewer.log', $droppedCount);
         }
 
-        return '<details class="hv-panel"><summary class="hv-panel-summary">' . $summary . '</summary>'
-            . '<div class="hv-panel-events">' . $items . '</div></details>';
+        return '<div class="hv-panel-root" vue-entry="HooksViewer.HooksPanel"'
+            . ' events="' . $attribute($events) . '"'
+            . ' request-id="' . $attribute(self::shortRequestId()) . '"'
+            . ' dropped-count="' . $attribute($droppedCount) . '">'
+            . '<details class="hv-panel"><summary class="hv-panel-summary">' . $summary . '</summary>'
+            . '<ol class="hv-panel-fallback">' . $names . '</ol></details>'
+            . '</div>';
     }
 
     /**

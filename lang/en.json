@@ -1,0 +1,32 @@
+{
+    "HooksViewer": {
+        "HooksViewer": "Hooks Viewer",
+        "CatalogIntro": "Every event discovered in core/ and plugins/: where it is posted, what it receives and which plugins listen to it. Use it to find the right hook when you build a Matomo plugin.",
+        "ProductionWarning": "Development tool: never keep HooksViewer activated on a production instance. It shows internal arguments and writes a log file on every request.",
+        "LogFile": "Every hook of every request is also written to %s.",
+        "SearchPlaceholder": "Search hooks",
+        "SearchInArguments": "Search in arguments",
+        "AllCategories": "All categories",
+        "OnlyWithListeners": "Only hooks with listeners",
+        "Showing": "%1$s of %2$s",
+        "HooksCount": "%s hooks",
+        "OneHook": "1 hook",
+        "ListenedCount": "%s with listeners",
+        "RequestId": "request %s",
+        "MoreInLog": "%s more in the log file",
+        "NoMatch": "No hook matches your search.",
+        "Hook": "Hook",
+        "Description": "Description",
+        "Listeners": "Listeners",
+        "PostedIn": "Posted in",
+        "Parameters": "Parameters",
+        "NoDescription": "No description in the source code.",
+        "Dynamic": "dynamic",
+        "DynamicHelp": "This hook is listened to, but its name is built at runtime (like Controller.CoreHome.index), so it is not found in the source code.",
+        "ListenExample": "Listen to this hook in your plugin",
+        "DeveloperReference": "Developer reference",
+        "OpenInCatalog": "Open in the hook catalog",
+        "Rescan": "Rescan the source code",
+        "Rescanned": "The hook catalog has been rebuilt."
+    }
+}

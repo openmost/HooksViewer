@@ -35,8 +35,24 @@ Two places, at the same time:
 
 ### Who can see the panel?
 
-Only super users. Everyone else browses Matomo normally, but the hooks
-of their requests are still written to the log file.
+Only super users, and only super users can open the hook catalog.
+Everyone else browses Matomo normally, but the hooks of their requests
+are still written to the log file.
+
+### How do I find the right hook for my plugin?
+
+1. Browse the page where you want to act, expand the *HooksViewer*
+   panel and search it. Tick *Search in arguments* to find the hook
+   that receives the data you want to change.
+2. Click *Open in the hook catalog* to read the hook description and
+   parameters, see which plugins already listen to it, and copy the
+   `registerEvents()` snippet.
+
+### Where is the hook catalog?
+
+*Administration → Diagnostic → Hooks Viewer*. It lists every hook found
+in the source code with its description, parameters, call sites and
+listeners, plus the hooks only known through their listeners.
 
 ### Why is the panel at the top of the page and not where the hook fired?
 

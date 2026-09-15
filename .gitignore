@@ -1,0 +1,4 @@
+.idea
+node_modules
+/vue/dist/*.umd.js
+/vue/dist/*.common.js

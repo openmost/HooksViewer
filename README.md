@@ -13,14 +13,21 @@ for each request, which hooks fire, in what order, and with what
 arguments. It is the fastest way to find the right event to listen to
 when you build a Matomo plugin.
 
-Two outputs run side by side:
+Three tools work side by side:
 
 1. **Inline panel** in the Matomo UI, for super users. Every HTML
    response gets a collapsible *HooksViewer* panel listing the hooks
    fired while it was built: at the top of full pages, and inside each
-   widget or AJAX HTML fragment. Open a hook to see a pretty-printed,
+   widget or AJAX HTML fragment. **Search** the list by hook name, or
+   inside the arguments, and open a hook to see a pretty-printed,
    multi-line dump of its arguments.
-2. **Log file** at `tmp/logs/hooksviewer.log`. Every hook from every
+2. **Hook catalog** under *Administration → Diagnostic → Hooks Viewer*.
+   Every known hook with its description and parameters (taken from
+   the docblock in the source code), the file and line where it is
+   posted, the plugins listening to it, and a ready-to-paste
+   `registerEvents()` snippet. Search it, filter it by category, or
+   show only the hooks that have listeners.
+3. **Log file** at `tmp/logs/hooksviewer.log`. Every hook from every
    request, including API calls, tracker hits and console commands, is
    appended with a timestamp, a request id and the arguments. Watch it
    with `tail -f tmp/logs/hooksviewer.log`.
@@ -53,8 +60,10 @@ introduces new events: they show up the next time the cache is rebuilt.
 
 1. Activate the plugin while you are exploring or debugging.
 2. Browse the page or trigger the workflow you care about.
-3. Expand the *HooksViewer* panel, or `tail -f` the log.
-4. **Deactivate the plugin when you are done.**
+3. Expand the *HooksViewer* panel and search it, or `tail -f` the log.
+4. Click *Open in the hook catalog* on any hook to read its
+   documentation and see who listens to it.
+5. **Deactivate the plugin when you are done.**
 
 ### Requirements
 

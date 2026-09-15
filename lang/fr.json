@@ -1,0 +1,32 @@
+{
+    "HooksViewer": {
+        "HooksViewer": "Hooks Viewer",
+        "CatalogIntro": "Tous les événements trouvés dans core/ et plugins/ : où ils sont déclenchés, ce qu'ils reçoivent et quels plugins les écoutent. Idéal pour trouver le bon hook quand vous développez un plugin Matomo.",
+        "ProductionWarning": "Outil de développement : ne laissez jamais HooksViewer activé sur une instance de production. Il affiche des arguments internes et écrit un fichier de log à chaque requête.",
+        "LogFile": "Chaque hook de chaque requête est aussi écrit dans %s.",
+        "SearchPlaceholder": "Rechercher un hook",
+        "SearchInArguments": "Chercher dans les arguments",
+        "AllCategories": "Toutes les catégories",
+        "OnlyWithListeners": "Seulement les hooks écoutés",
+        "Showing": "%1$s sur %2$s",
+        "HooksCount": "%s hooks",
+        "OneHook": "1 hook",
+        "ListenedCount": "%s écoutés",
+        "RequestId": "requête %s",
+        "MoreInLog": "%s de plus dans le fichier de log",
+        "NoMatch": "Aucun hook ne correspond à votre recherche.",
+        "Hook": "Hook",
+        "Description": "Description",
+        "Listeners": "Écouteurs",
+        "PostedIn": "Déclenché dans",
+        "Parameters": "Paramètres",
+        "NoDescription": "Pas de description dans le code source.",
+        "Dynamic": "dynamique",
+        "DynamicHelp": "Ce hook est écouté, mais son nom est construit à l'exécution (comme Controller.CoreHome.index) : il n'apparaît donc pas dans le code source.",
+        "ListenExample": "Écouter ce hook dans votre plugin",
+        "DeveloperReference": "Référence développeur",
+        "OpenInCatalog": "Ouvrir dans le catalogue des hooks",
+        "Rescan": "Rescanner le code source",
+        "Rescanned": "Le catalogue des hooks a été reconstruit."
+    }
+}
