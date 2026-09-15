@@ -9,15 +9,39 @@
 
 namespace Piwik\Plugins\HooksViewer;
 
+use Piwik\Piwik;
+use Piwik\Plugin\Manager;
+
 class HooksViewer extends \Piwik\Plugin
 {
-    /** Cached HTML-context decision for the current request. null = not yet decided. */
-    private static $htmlContext = null;
+    /** Size above which tmp/logs/hooksviewer.log is rotated to hooksviewer.log.1. */
+    private const LOG_MAX_BYTES = 10485760;
+
+    /** Maximum number of events kept in memory for the inline panel (the log keeps them all). */
+    private const PANEL_MAX_EVENTS = 5000;
+
+    /** Maximum length of the arguments dump kept in memory for each event of the panel. */
+    private const PANEL_MAX_ARGS_LENGTH = 20000;
+
+    /** Maximum nested depth to walk before bailing out with "…". */
+    private const DESCRIBE_MAX_DEPTH = 4;
+
+    /** Indentation used between nested levels. Two spaces keeps lines short. */
+    private const DESCRIBE_INDENT = '  ';
+
+    /** Maximum number of array entries / object props to emit per level. */
+    private const DESCRIBE_MAX_ENTRIES = 30;
+
+    /** Maximum displayed length of a string value (longer values are truncated). */
+    private const DESCRIBE_MAX_STRING = 240;
+
+    /** Cached decision: can this request carry an HTML panel at all? null = not yet decided. */
+    private static $htmlRequest = null;
 
     /** Running count of events emitted in this request (for ordering hints). */
     private static $eventIndex = 0;
 
-    /** In-memory copy of the discovered hook list — populated lazily. */
+    /** In-memory copy of the discovered hook list, populated lazily. */
     private static $hooks = null;
 
     /** Resolved log file path (false if logs cannot be written). */
@@ -26,12 +50,40 @@ class HooksViewer extends \Piwik\Plugin
     /** Short identifier for the current request, so log lines can be correlated. */
     private static $requestId = null;
 
+    /** Whether the output buffer that injects the panel has been started. */
+    private static $bufferStarted = false;
+
+    /** Whether the current user may see the panel. Decided once the user is authenticated. */
+    private static $canDisplay = false;
+
+    /** Events captured for the panel, as [index, hook name, arguments dump]. */
+    private static $events = [];
+
+    /** Events that fired after PANEL_MAX_EVENTS was reached (still written to the log). */
+    private static $droppedEvents = 0;
+
+    /** Number of captured events already written into the response. */
+    private static $renderedCount = 0;
+
+    /** Kind of response being buffered: null (undecided), 'page', 'fragment' or 'none'. */
+    private static $outputKind = null;
+
+    /** Whether the panel has already been written into the response. */
+    private static $panelInjected = false;
+
+    public function __construct($pluginName = false)
+    {
+        parent::__construct($pluginName);
+
+        $this->startOutputBuffer();
+    }
+
     /**
      * Subscribe to every discovered hook.
      *
      * The list is built dynamically by HookCatalog (which scans core/ and
      * plugins/ for postEvent('…') call sites), so newly added events show up
-     * automatically — no hand-maintained list to drift behind core.
+     * automatically, with no hand-maintained list to drift behind core.
      */
     public function registerEvents()
     {
@@ -65,12 +117,10 @@ class HooksViewer extends \Piwik\Plugin
 
     private function resetAssetCache(): void
     {
-        if (class_exists('\\Piwik\\AssetManager')) {
-            try {
-                \Piwik\AssetManager::getInstance()->removeMergedAssets();
-            } catch (\Throwable $e) {
-                // Cache reset is best-effort — failing here must never block activation.
-            }
+        try {
+            \Piwik\AssetManager::getInstance()->removeMergedAssets();
+        } catch (\Throwable $e) {
+            // Cache reset is best-effort, failing here must never block activation.
         }
     }
 
@@ -105,16 +155,15 @@ class HooksViewer extends \Piwik\Plugin
      *
      * Matomo's EventDispatcher uses call_user_func_array, which does not preserve
      * references unless the receiver declares them. Our generic receiver therefore
-     * cannot mutate by-ref args — which is fine because we only observe.
+     * cannot mutate by-ref args, which is fine because we only observe.
      * Hooks needing real by-ref behavior (e.g. AssetManager.getStylesheetFiles)
      * are handled via dedicated methods below.
      */
     public function __call($name, $arguments)
     {
-        $hookName = $this->methodToHook((string)$name);
+        $hookName = $this->methodToHook((string) $name);
         if ($hookName === null) {
-            trigger_error(sprintf('Call to undefined method %s::%s()', static::class, $name), E_USER_ERROR);
-            return null;
+            throw new \BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $name));
         }
         $this->captureHook($hookName, $arguments);
         return null;
@@ -131,16 +180,13 @@ class HooksViewer extends \Piwik\Plugin
     }
 
     /**
-     * Render the hook inline at the moment it fires (HTML responses only) and
-     * always append a line to the request-scoped log file.
+     * Log every hook, and keep it in memory for the inline panel.
      *
-     * Why no inline emission on non-HTML responses?
-     *   - JSON has no comment syntax, so any marker prefix breaks API consumers
-     *     (widgets, dashboard, third-party clients).
-     *   - Image / tracker responses must be byte-exact.
-     *   - CSV / XML are similarly fragile.
-     * Devs who need to see hooks fire on JSON/tracker requests can `tail -f`
-     * tmp/logs/hooksviewer.log — every hook from every request shows up there.
+     * Nothing is echoed while the hook fires: Matomo captures output in nested
+     * buffers (Twig rendering, FrontController::fetchDispatch()), so markup
+     * printed at that moment would end up inside attributes, graph data or JSON
+     * bodies. The panel is written once the response is complete, see
+     * renderInlinePanel().
      */
     private function captureHook(string $hookName, array $args): void
     {
@@ -149,18 +195,184 @@ class HooksViewer extends \Piwik\Plugin
 
         $this->logEvent($hookName, $index, $argsText);
 
-        if (!$this->isHtmlContext()) {
+        if ($hookName === 'Platform.initialized') {
+            // Fired right after authentication: the earliest point where access is known.
+            self::$canDisplay = self::currentUserCanSeeHooks();
+        }
+
+        if (!self::$bufferStarted) {
             return;
         }
 
-        ob_start();
-        echo '<details class="hv-event" data-hook="', htmlspecialchars($hookName, ENT_QUOTES), '">',
-            '<summary><span class="hv-event-index">#', $index, '</span> ',
-            htmlspecialchars($hookName, ENT_QUOTES),
-            '</summary>',
-            '<pre class="hv-args"><code>', htmlspecialchars($argsText, ENT_QUOTES), '</code></pre>',
-            '</details>';
-        echo ob_get_clean();
+        if (count(self::$events) >= self::PANEL_MAX_EVENTS) {
+            self::$droppedEvents++;
+            return;
+        }
+
+        if (strlen($argsText) > self::PANEL_MAX_ARGS_LENGTH) {
+            $argsText = mb_strcut($argsText, 0, self::PANEL_MAX_ARGS_LENGTH, 'UTF-8') . "\n… (truncated, see the log file)";
+        }
+        self::$events[] = [$index, $hookName, $argsText];
+    }
+
+    /**
+     * The panel exposes internal arguments (configuration, visitor data, request
+     * parameters), so only super users get to see it. Hooks of every request are
+     * still written to the log file.
+     */
+    private static function currentUserCanSeeHooks(): bool
+    {
+        try {
+            return Piwik::hasUserSuperUserAccess();
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Wrap the whole response in an output buffer so the panel can be injected
+     * once the response is complete and its real Content-Type is known.
+     *
+     * Started from the constructor, which runs while plugins are loaded during
+     * bootstrap, before any output and outside any nested buffer.
+     */
+    private function startOutputBuffer(): void
+    {
+        if (self::$bufferStarted || !self::isHtmlRequest()) {
+            return;
+        }
+
+        try {
+            // Plugins are also instantiated when listed (Plugins admin, Marketplace):
+            // only buffer when this plugin is actually loaded for the request.
+            if (!Manager::getInstance()->isPluginActivated($this->getPluginName())) {
+                return;
+            }
+        } catch (\Throwable $e) {
+            return;
+        }
+
+        self::$bufferStarted = ob_start([self::class, 'renderInlinePanel']);
+    }
+
+    /**
+     * Output buffer callback: write the captured hooks into HTML responses.
+     *
+     * - Full pages get the panel right after the opening <body> tag, so the
+     *   doctype stays first and the page does not fall back to quirks mode.
+     * - HTML fragments (widgets and other AJAX HTML) get it prepended.
+     * - Anything else (JSON controllers declaring #[JsonResponse], images,
+     *   exports, redirects, plain text) is left byte-exact.
+     * Hooks that fire after the panel was written (e.g. when the response is
+     * flushed in several chunks) are appended at the end of the response.
+     */
+    public static function renderInlinePanel(string $buffer, int $phase): string
+    {
+        if (($phase & PHP_OUTPUT_HANDLER_CLEAN) !== 0 || !self::$canDisplay) {
+            return $buffer;
+        }
+
+        $isFinal = ($phase & PHP_OUTPUT_HANDLER_FINAL) !== 0;
+
+        if (self::$outputKind === null) {
+            if (trim($buffer) === '' && !$isFinal) {
+                return $buffer;
+            }
+            self::$outputKind = self::detectOutputKind($buffer);
+        }
+
+        if (self::$outputKind === 'none') {
+            return $buffer;
+        }
+
+        if (!self::$panelInjected) {
+            $position = self::$outputKind === 'fragment' ? 0 : self::findBodyContentStart($buffer);
+            if ($position === null) {
+                if (!$isFinal) {
+                    return $buffer;
+                }
+                $position = strlen($buffer);
+            }
+            self::$panelInjected = true;
+            return substr_replace($buffer, self::renderPendingEvents(), $position, 0);
+        }
+
+        if (!$isFinal) {
+            return $buffer;
+        }
+
+        $panel = self::renderPendingEvents();
+        if ($panel === '') {
+            return $buffer;
+        }
+        $closingBody = strripos($buffer, '</body>');
+        return substr_replace($buffer, $panel, $closingBody === false ? strlen($buffer) : $closingBody, 0);
+    }
+
+    private static function detectOutputKind(string $buffer): string
+    {
+        foreach (headers_list() as $header) {
+            if (stripos($header, 'Content-Type:') !== 0) {
+                continue;
+            }
+            $value = strtolower(trim(substr($header, 13)));
+            if ($value !== '' && strpos($value, 'text/html') !== 0) {
+                return 'none';
+            }
+        }
+
+        $start = ltrim(substr($buffer, 0, 1024));
+        if ($start === '') {
+            return 'none';
+        }
+        if (preg_match('/^(?:<!doctype\b|<html\b)/i', $start)) {
+            return 'page';
+        }
+        // JSON sent without a Content-Type, plain text, JavaScript: never touch.
+        return $start[0] === '<' ? 'fragment' : 'none';
+    }
+
+    private static function findBodyContentStart(string $buffer): ?int
+    {
+        if (!preg_match('/<body\b[^>]*>/i', $buffer, $match, PREG_OFFSET_CAPTURE)) {
+            return null;
+        }
+        return $match[0][1] + strlen($match[0][0]);
+    }
+
+    private static function renderPendingEvents(): string
+    {
+        $events = array_slice(self::$events, self::$renderedCount);
+        self::$renderedCount = count(self::$events);
+
+        if ($events === []) {
+            return '';
+        }
+
+        $items = '';
+        foreach ($events as [$index, $hookName, $argsText]) {
+            $items .= '<details class="hv-event" data-hook="' . htmlspecialchars($hookName, ENT_QUOTES) . '">'
+                . '<summary><span class="hv-event-index">#' . $index . '</span> '
+                . htmlspecialchars($hookName, ENT_QUOTES)
+                . '</summary>'
+                . '<pre class="hv-args"><code>' . htmlspecialchars($argsText, ENT_QUOTES) . '</code></pre>'
+                . '</details>';
+        }
+
+        $count = count($events);
+        $summary = sprintf(
+            '<span class="hv-panel-title">HooksViewer</span> %d hook%s, request %s',
+            $count,
+            $count > 1 ? 's' : '',
+            htmlspecialchars(self::shortRequestId(), ENT_QUOTES)
+        );
+        if (self::$droppedEvents > 0) {
+            $summary .= sprintf(', %d more in tmp/logs/hooksviewer.log', self::$droppedEvents);
+            self::$droppedEvents = 0;
+        }
+
+        return '<details class="hv-panel"><summary class="hv-panel-summary">' . $summary . '</summary>'
+            . '<div class="hv-panel-events">' . $items . '</div></details>';
     }
 
     /**
@@ -172,9 +384,6 @@ class HooksViewer extends \Piwik\Plugin
     {
         if (self::$logPath === null) {
             self::$logPath = $this->resolveLogPath();
-            if (self::$logPath === false) {
-                return;
-            }
         }
         if (self::$logPath === false) {
             return;
@@ -183,7 +392,7 @@ class HooksViewer extends \Piwik\Plugin
         $line = sprintf(
             "[%s] %s #%d %s :: %s\n",
             date('Y-m-d H:i:s'),
-            $this->shortRequestId(),
+            self::shortRequestId(),
             $index,
             $hookName,
             str_replace(["\r\n", "\n", "\r"], ' | ', $argsText)
@@ -191,22 +400,28 @@ class HooksViewer extends \Piwik\Plugin
         @file_put_contents(self::$logPath, $line, FILE_APPEND | LOCK_EX);
     }
 
+    /**
+     * @return string|false
+     */
     private function resolveLogPath()
     {
-        $base = defined('PIWIK_INCLUDE_PATH')
-            ? rtrim(PIWIK_INCLUDE_PATH, '/\\')
-            : dirname(__DIR__, 2);
-        $dir = $base . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'logs';
+        $dir = HookCatalog::tmpPath() . DIRECTORY_SEPARATOR . 'logs';
         if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
             return false;
         }
-        return $dir . DIRECTORY_SEPARATOR . 'hooksviewer.log';
+
+        $path = $dir . DIRECTORY_SEPARATOR . 'hooksviewer.log';
+        // Every request appends hundreds of lines: keep the file from growing forever.
+        if (is_file($path) && (int) @filesize($path) > self::LOG_MAX_BYTES) {
+            @rename($path, $path . '.1');
+        }
+        return $path;
     }
 
-    private function shortRequestId(): string
+    private static function shortRequestId(): string
     {
         if (self::$requestId === null) {
-            self::$requestId = substr(bin2hex(random_bytes(3)), 0, 6);
+            self::$requestId = bin2hex(random_bytes(3));
         }
         return self::$requestId;
     }
@@ -223,18 +438,6 @@ class HooksViewer extends \Piwik\Plugin
         }
         return implode("\n", $blocks);
     }
-
-    /** Maximum nested depth to walk before bailing out with "…". */
-    private const DESCRIBE_MAX_DEPTH = 4;
-
-    /** Indentation used between nested levels. Two spaces keeps lines short. */
-    private const DESCRIBE_INDENT = '  ';
-
-    /** Maximum number of array entries / object props to emit per level. */
-    private const DESCRIBE_MAX_ENTRIES = 30;
-
-    /** Maximum displayed length of a string value (longer values are truncated). */
-    private const DESCRIBE_MAX_STRING = 240;
 
     /**
      * Pretty-print a value across multiple indented lines so deeply-nested
@@ -255,7 +458,7 @@ class HooksViewer extends \Piwik\Plugin
             return $value ? 'true' : 'false';
         }
         if (is_int($value) || is_float($value)) {
-            return (string)$value;
+            return (string) $value;
         }
         if (is_string($value)) {
             return $this->describeString($value);
@@ -276,7 +479,8 @@ class HooksViewer extends \Piwik\Plugin
     {
         $len = strlen($value);
         if ($len > self::DESCRIBE_MAX_STRING) {
-            $value = substr($value, 0, self::DESCRIBE_MAX_STRING) . '…';
+            // mb_strcut never splits a multi-byte character in half.
+            $value = mb_strcut($value, 0, self::DESCRIBE_MAX_STRING, 'UTF-8') . '…';
         }
         // var_export gives us proper quoting + escaping for control chars.
         return 'string(' . $len . ') ' . var_export($value, true);
@@ -289,15 +493,10 @@ class HooksViewer extends \Piwik\Plugin
             return 'array(0) []';
         }
 
-        // Numeric arrays of scalars stay on a single line — easier to scan.
+        // Numeric arrays of scalars stay on a single line, easier to scan.
         if ($this->isFlatNumericList($value)) {
             $parts = [];
-            $i = 0;
             foreach ($value as $v) {
-                if ($i++ >= self::DESCRIBE_MAX_ENTRIES) {
-                    $parts[] = '…';
-                    break;
-                }
                 $parts[] = $this->describe($v, $depth + 1);
             }
             return 'array(' . $count . ') [' . implode(', ', $parts) . ']';
@@ -322,12 +521,20 @@ class HooksViewer extends \Piwik\Plugin
     {
         $class = get_class($value);
 
+        if ($value instanceof \UnitEnum) {
+            return $class . '::' . $value->name;
+        }
+
         // Treat stdClass / generic value objects like associative arrays so the
         // dump is useful instead of just "object(stdClass)".
         if ($value instanceof \stdClass || $value instanceof \JsonSerializable || $value instanceof \ArrayObject) {
-            $array = $value instanceof \JsonSerializable
-                ? (array)$value->jsonSerialize()
-                : (array)$value;
+            try {
+                $array = $value instanceof \JsonSerializable
+                    ? (array) $value->jsonSerialize()
+                    : (array) $value;
+            } catch (\Throwable $e) {
+                return 'object(' . $class . ')';
+            }
             return 'object(' . $class . ') ' . $this->describeArray($array, $depth);
         }
 
@@ -336,9 +543,10 @@ class HooksViewer extends \Piwik\Plugin
 
     private function formatKey($key): string
     {
-        return is_int($key) ? (string)$key : var_export((string)$key, true);
+        return is_int($key) ? (string) $key : var_export((string) $key, true);
     }
 
+    /** Lists of at most 12 short scalars, rendered on a single line. */
     private function isFlatNumericList(array $value): bool
     {
         if (count($value) > 12) {
@@ -360,81 +568,46 @@ class HooksViewer extends \Piwik\Plugin
     }
 
     /**
-     * Decide once per request whether the response is HTML. Cached because a
-     * hook may fire many times per response and the answer cannot meaningfully
-     * change once headers have been sent.
-     *
-     * IMPORTANT: hooks often fire BEFORE Matomo has sent any Content-Type
-     * header — by the time `headers_list()` reflects "application/json" the
-     * decision has already been made and we may have polluted the response.
-     * To stay safe we treat any of the following as non-HTML:
+     * Decide once per request whether the response may carry the panel at all.
+     * The final decision is taken on the actual response in detectOutputKind(),
+     * this early check only avoids buffering requests that are never HTML:
      *   - CLI / tracker mode
-     *   - explicit XHR (X-Requested-With)
-     *   - request looks like an API call (module=API, ?format=json/xml/csv,
-     *     /matomo.php endpoint, etc.)
-     *   - already-sent Content-Type that is not text/html
-     * Anything else is assumed HTML.
+     *   - tracker endpoints (matomo.php, piwik.php)
+     *   - API calls (module=API, module=Proxy)
+     *   - an explicit non-HTML format (json, xml, csv, tsv, rss…)
      */
-    private function isHtmlContext(): bool
+    private static function isHtmlRequest(): bool
     {
-        if (self::$htmlContext !== null) {
-            return self::$htmlContext;
+        if (self::$htmlRequest !== null) {
+            return self::$htmlRequest;
         }
 
-        // Hard-no contexts: response bytes must be exact.
         if (PHP_SAPI === 'cli') {
-            return self::$htmlContext = false;
+            return self::$htmlRequest = false;
         }
         if (defined('PIWIK_TRACKER_MODE') && PIWIK_TRACKER_MODE) {
-            return self::$htmlContext = false;
+            return self::$htmlRequest = false;
         }
 
-        $requestUri = $_SERVER['REQUEST_URI'] ?? '';
-        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        if (
-            strpos($scriptName, 'matomo.php') !== false
-            || strpos($scriptName, 'piwik.php') !== false
-            || strpos($requestUri, '/matomo.php') !== false
-            || strpos($requestUri, '/piwik.php') !== false
-        ) {
-            return self::$htmlContext = false;
+        $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        $scriptName = (string) ($_SERVER['SCRIPT_NAME'] ?? '');
+        foreach (['matomo.php', 'piwik.php'] as $trackerEndpoint) {
+            if (strpos($scriptName, $trackerEndpoint) !== false || strpos($requestUri, '/' . $trackerEndpoint) !== false) {
+                return self::$htmlRequest = false;
+            }
         }
 
         $module = $_GET['module'] ?? $_POST['module'] ?? null;
-        $format = strtolower((string)($_GET['format'] ?? $_POST['format'] ?? ''));
-
-        // API responses are JSON/XML/CSV — never inject HTML.
         if ($module === 'API' || $module === 'Proxy') {
-            return self::$htmlContext = false;
+            return self::$htmlRequest = false;
         }
 
-        // Explicit format wins. A widget AJAX request asks for format=html and
-        // expects rendered markup; without this branch the X-Requested-With
-        // check below would suppress hooks like ViewDataTable.filterViewDataTable
-        // which only fire during widget rendering.
-        if ($format === 'html' || $format === 'html2' || $format === 'original') {
-            return self::$htmlContext = true;
-        }
-        if ($format !== '') {
-            // json, xml, csv, tsv, rss, … — none accept inline markers.
-            return self::$htmlContext = false;
+        $format = $_GET['format'] ?? $_POST['format'] ?? '';
+        $format = is_string($format) ? strtolower($format) : '';
+        if ($format !== '' && !in_array($format, ['html', 'html2', 'original'], true)) {
+            return self::$htmlRequest = false;
         }
 
-        // No explicit format. Many controller actions return HTML even when
-        // requested via XHR (widget=1, dashboard inline rendering, etc.). Trust
-        // the Content-Type header if it has been set; otherwise — including
-        // for XHRs without a format — assume HTML so widget hooks stay visible.
-        foreach (headers_list() as $header) {
-            if (stripos($header, 'Content-Type:') !== 0) {
-                continue;
-            }
-            $value = strtolower(trim(substr($header, 13)));
-            if ($value === '' || strpos($value, 'text/html') === 0) {
-                return self::$htmlContext = true;
-            }
-            return self::$htmlContext = false;
-        }
-
-        return self::$htmlContext = true;
+        return self::$htmlRequest = true;
     }
 }

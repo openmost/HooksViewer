@@ -1,25 +1,35 @@
 ## Documentation
 
 HooksViewer is a development tool that subscribes to every Matomo event
-and surfaces them, in real time, while you are browsing the admin or
-exercising the API.
+and surfaces them while you are browsing the Matomo UI or exercising the
+API.
 
 ### Two outputs
 
-**Inline DOM** — On HTML pages and on widget AJAX requests
-(`format=html`), each fired event is rendered as a `<details><summary>`
-block at the exact place in the response stream where it was dispatched.
-Open the summary to see a clean, indented dump of the hook arguments.
+**Inline panel**: every HTML response (full pages, widgets, AJAX HTML
+fragments) gets a collapsible *HooksViewer* panel, visible to super
+users only. Its summary shows how many hooks fired and the request id.
+Expand it to list the hooks in the order they fired, then expand a hook
+to see a clean, indented dump of its arguments.
 
-**Log file** — `tmp/logs/hooksviewer.log` receives one line per fired
+- Full pages show the panel at the very top of the page.
+- Each dashboard widget shows its own panel, so hooks like
+  `ViewDataTable.filterViewDataTable`, `Visualization.beforeRender` or
+  `Metrics.isLowerValueBetter` are visible for the widget that
+  triggered them.
+
+**Log file**: `tmp/logs/hooksviewer.log` receives one line per fired
 event from **every** request, including JSON API calls, tracker hits,
-and CLI commands. Each line carries a timestamp, a short request id so
-you can correlate concurrent requests, an event index, the hook name,
-and a compact view of the args.
+console commands, and requests made by users who cannot see the panel.
+Each line carries a timestamp, a short request id (the same one as in
+the panel summary), an event index, the hook name, and a compact view of
+the arguments.
 
 ```
 tail -f tmp/logs/hooksviewer.log
 ```
+
+The log is rotated to `hooksviewer.log.1` once it grows above 10 MB.
 
 ### Where the hook list comes from
 
@@ -37,18 +47,27 @@ they cannot be subscribed to as a single static name.
 
 ### Response safety
 
-Some Matomo responses cannot tolerate any extra bytes:
+Nothing is printed while a hook fires. Matomo renders templates and
+widgets into nested output buffers, so markup printed at that moment
+would end up inside HTML attributes, graph data or JSON bodies.
+
+Instead, hooks are collected during the request and the panel is
+written once the response is complete:
+
+- only when the final `Content-Type` is HTML;
+- right after `<body>` for full pages, so the doctype stays first;
+- at the top of HTML fragments.
+
+These responses are never modified:
 
 - `module=API` (JSON / XML / CSV / TSV / RSS)
+- controller actions returning JSON (`#[JsonResponse]`, e.g.
+  `Dashboard.getAllDashboards`)
 - `matomo.php` and `piwik.php` (tracker hits and image responses)
-- CLI commands
+- exports, images, redirects and plain text responses
+- console commands
 
-For these, HooksViewer **does not inject anything** into the response.
-Use the log file (`tmp/logs/hooksviewer.log`) to observe their hooks.
-
-For HTML pages and widget AJAX (`format=html`), output is rendered
-inline as `<details>` elements styled to stay readable on light and
-dark themes alike.
+Use the log file to observe their hooks.
 
 ### Useful references
 

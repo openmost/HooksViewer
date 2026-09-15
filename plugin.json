@@ -1,24 +1,25 @@
 {
     "name": "HooksViewer",
     "description": "Easily visualize event hooks in Matomo. Never install in production !",
-    "version": "2.0.1",
+    "version": "6.0.0",
     "theme": false,
     "require": {
-        "matomo": ">=5.0.0-stable,<6.0.0-b1"
+        "matomo": ">=6.0.0-b1,<7.0.0-b1",
+        "php": ">=8.1.0"
     },
     "authors": [
         {
             "name": "Openmost",
-            "email": "ronan@openmost.io",
-            "homepage": "https:\/\/openmost.io"
+            "email": "ronan@openmost.com",
+            "homepage": "https:\/\/openmost.com"
         }
     ],
     "support": {
-        "email": "ronan@openmost.io",
+        "email": "ronan@openmost.com",
         "issues": "https:\/\/github.com\/openmost\/HooksViewer\/issues",
         "source": "https:\/\/github.com\/openmost\/HooksViewer"
     },
-    "homepage": "https:\/\/openmost.io\/products\/hooks-viewer\/",
+    "homepage": "https:\/\/openmost.com\/matomo\/extensions\/hooks-viewer",
     "license": "GPL v3+",
     "keywords": [
         "hooks",

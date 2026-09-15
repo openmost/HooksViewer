@@ -14,7 +14,7 @@ namespace Piwik\Plugins\HooksViewer;
  * Piwik::postEvent('…') / $dispatcher->postEvent('…') call sites.
  *
  * The result is cached in tmp/cache/ and invalidated whenever the most-recent
- * mtime across scanned source trees changes — so adding a new core or plugin
+ * mtime across scanned source trees changes, so adding a new core or plugin
  * file forces a rescan on the next request, with no manual list to maintain.
  *
  * Wildcard hooks (names containing PHP variables, sprintf placeholders, or
@@ -26,7 +26,7 @@ namespace Piwik\Plugins\HooksViewer;
  */
 class HookCatalog
 {
-    /** Cache version — bump when the discovery logic changes shape. */
+    /** Cache version: bump when the discovery logic changes shape. */
     private const CACHE_VERSION = 2;
 
     /** Directories to walk, relative to PIWIK_INCLUDE_PATH. */
@@ -60,11 +60,11 @@ class HookCatalog
                 && isset($cached['hooks']) && is_array($cached['hooks'])
             ) {
                 if ($age < self::SIGNATURE_TTL_SECONDS) {
-                    // Within TTL — trust the cache without rescanning mtimes.
+                    // Within TTL: trust the cache without rescanning mtimes.
                     return $cached['hooks'];
                 }
                 if (($cached['signature'] ?? null) === $this->sourceSignature()) {
-                    // Signature still matches — refresh the file mtime to push the TTL forward.
+                    // Signature still matches: refresh the file mtime to push the TTL forward.
                     @touch($cacheFile);
                     return $cached['hooks'];
                 }
@@ -141,7 +141,7 @@ class HookCatalog
     }
 
     /**
-     * Walk SCAN_ROOTS and yield every .php file. Skips vendor/ and tests/ —
+     * Walk SCAN_ROOTS and yield every .php file. Skips vendor/ and tests/:
      * those never legitimately register events that affect a running install,
      * and skipping them shaves the scan time substantially.
      */
@@ -197,7 +197,7 @@ class HookCatalog
 
             $constants = $this->extractConstants($source);
 
-            // Capture the first argument to postEvent — string literal, constant, or self::CONST.
+            // Capture the first argument to postEvent: string literal, constant, or self::CONST.
             // Pattern explained: postEvent ( <ws> ( '...' | "..." | self::CONST | static::CONST | CONST_NAME )
             $pattern = '/postEvent\s*\(\s*(?P<arg>'
                 . "'(?:\\\\'|[^'])*'"           // single-quoted string
@@ -226,7 +226,7 @@ class HookCatalog
     /**
      * Map `const NAME = 'value';` declarations to their string values. Captures
      * both class constants and top-level `const FOO = '…'`. Anything that is
-     * not a single-line string literal is skipped — we only need the easy wins.
+     * not a single-line string literal is skipped, we only need the easy wins.
      *
      * @return array<string,string>
      */
@@ -262,7 +262,7 @@ class HookCatalog
             return $this->isUsableEventName($value) ? $value : null;
         }
 
-        // ClassRef::CONST — only resolvable if the constant is in the same file.
+        // ClassRef::CONST: only resolvable if the constant is in the same file.
         if (strpos($arg, '::') !== false) {
             [, $constName] = explode('::', $arg, 2);
             if (isset($constants[$constName])) {
@@ -308,7 +308,7 @@ class HookCatalog
             return $literal;
         }
         $inner = substr($literal, 1, -1);
-        // Best-effort unescape — we only care about \\' and \\" anyway.
+        // Best-effort unescape: we only care about \\' and \\" anyway.
         return str_replace(['\\' . $quote, '\\\\'], [$quote, '\\'], $inner);
     }
 
@@ -321,9 +321,28 @@ class HookCatalog
         return dirname(__DIR__, 2);
     }
 
+    /**
+     * Matomo tmp directory. Honours a customised 'path.tmp' (e.g. multi-instance
+     * setups) once the DI container exists, falls back to <base>/tmp before that.
+     */
+    public static function tmpPath(): string
+    {
+        try {
+            $path = \Piwik\Container\StaticContainer::get('path.tmp');
+            if (is_string($path) && $path !== '') {
+                return rtrim($path, '/\\');
+            }
+        } catch (\Throwable $e) {
+            // Container not built yet (very early hooks).
+        }
+
+        $base = defined('PIWIK_INCLUDE_PATH') ? rtrim(PIWIK_INCLUDE_PATH, '/\\') : dirname(__DIR__, 2);
+        return $base . DIRECTORY_SEPARATOR . 'tmp';
+    }
+
     private function cacheFile(): string
     {
-        $dir = $this->basePath() . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'cache';
+        $dir = self::tmpPath() . DIRECTORY_SEPARATOR . 'cache';
         if (!is_dir($dir)) {
             @mkdir($dir, 0755, true);
         }
