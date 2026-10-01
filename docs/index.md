@@ -1,17 +1,17 @@
 ## Documentation
 
 HooksViewer is a development tool that subscribes to every Matomo event
-and surfaces them, in real time, while you are browsing the admin or
-exercising the API.
+and surfaces them while you are browsing the Matomo UI or exercising
+the API.
 
 ### Two outputs
 
-**Inline DOM** — On HTML pages and on widget AJAX requests
-(`format=html`), each fired event is rendered as a `<details><summary>`
-block at the exact place in the response stream where it was dispatched.
-Open the summary to see a clean, indented dump of the hook arguments.
+**Inline panel**: for super users, HTML pages and widget AJAX requests
+(`format=html`) get a collapsible *HooksViewer* panel listing every
+event fired while the response was built, in order. Open a hook to see
+a clean, indented dump of its arguments.
 
-**Log file** — `tmp/logs/hooksviewer.log` receives one line per fired
+**Log file**: `tmp/logs/hooksviewer.log` receives one line per fired
 event from **every** request, including JSON API calls, tracker hits,
 and CLI commands. Each line carries a timestamp, a short request id so
 you can correlate concurrent requests, an event index, the hook name,
@@ -20,6 +20,8 @@ and a compact view of the args.
 ```
 tail -f tmp/logs/hooksviewer.log
 ```
+
+The log is rotated to `hooksviewer.log.1` once it grows above 10 MB.
 
 ### Where the hook list comes from
 
@@ -46,9 +48,10 @@ Some Matomo responses cannot tolerate any extra bytes:
 For these, HooksViewer **does not inject anything** into the response.
 Use the log file (`tmp/logs/hooksviewer.log`) to observe their hooks.
 
-For HTML pages and widget AJAX (`format=html`), output is rendered
-inline as `<details>` elements styled to stay readable on light and
-dark themes alike.
+For HTML pages and widget AJAX (`format=html`), the panel is written
+once the response is complete, right after the opening `<body>` tag (or
+at the top of a fragment), never inside a `<script>` block, and is styled to follow the light or dark Matomo
+theme.
 
 ### Useful references
 

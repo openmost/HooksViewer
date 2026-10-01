@@ -1,5 +1,14 @@
 ## Changelog
 
+### v5.0.0
+
+- The version number now follows the Matomo major version (5.x for Matomo 5).
+- Requires Matomo 5.10.0 or higher (`>=5.10.0,<6.0.0-b1`), for the theme variables used by the argument dumps.
+- The argument dumps follow the light or dark Matomo theme, including DarkTheme, instead of a forced dark background.
+- Security: the hooks are only printed into the pages of super users, as in v6. The log file still records every request.
+- Fix: the hooks are now gathered in one collapsible *HooksViewer* panel written once the response is complete, at the top of the page or of the widget, as in v6. They were printed where each hook fired, including inside the `<script>` holding the Matomo JS globals, which emptied `piwik.token_auth` and made the report widgets fail with a 401 error.
+- `tmp/logs/hooksviewer.log` is rotated to `hooksviewer.log.1` above 10 MB.
+
 ### v2.0.1
 
 update: README.md
@@ -32,7 +41,7 @@ and renders them inline at their dispatch point.
 **Safety**
 
 - Inline emission is suppressed for JSON, XML, CSV, image, and tracker
-  responses — Matomo's API and `matomo.php` payloads stay byte-exact.
+  responses, Matomo's API and `matomo.php` payloads stay byte-exact.
 - Widget AJAX requests (`format=html`) keep their inline output, so
   hooks like `ViewDataTable.filterViewDataTable`,
   `Visualization.beforeRender`, `Metrics.isLowerValueBetter`, and
