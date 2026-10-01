@@ -1,83 +1,56 @@
-# Matomo HooksViewer Plugin
+# HooksViewer
 
-## Description
+See every event hook Matomo dispatches, in which order and with which arguments, to find the right hook when you build a Matomo plugin.
 
-> **Never install this plugin on a production instance.**
-> It is a development tool: it exposes internal hook arguments and
-> writes a log file on every request.
+> **Never install this plugin on a production instance.** It is a development tool: it shows internal hook arguments (configuration values, visitor data, request parameters) and writes a log file on every request.
 
-### What it does
+## Features
 
-HooksViewer subscribes to **every event Matomo dispatches** and shows you,
-for each request, which hooks fire, in what order, and with what
-arguments. It is the fastest way to find the right event to listen to
-when you build a Matomo plugin.
+- **Every event, discovered automatically**: the plugin scans `core/` and `plugins/` for `Piwik::postEvent()` call sites and subscribes to every hook it finds, including the hooks of third-party plugins. The list is cached in `tmp/cache/hooksviewer-catalog.php` and rebuilt when the source tree changes.
+- **Inline panel**, for super users: every HTML response gets a collapsible *HooksViewer* panel with the hooks fired while it was built, in order. Full pages show it at the top, each widget and AJAX HTML fragment shows its own. Open a hook to read a pretty-printed, multi-line dump of its arguments.
+- **Search in the panel**: filter the hooks by name, or tick *Search in arguments* to find the hook that receives a given report or setting.
+- **Hook catalog** (Administration > Diagnostic > Hooks Viewer): every known hook with its description and parameters from the source docblock, the file and line where it is posted, the plugins listening to it, a ready-to-paste `registerEvents()` snippet and a link to the developer reference. Search it, filter it by category, show only the hooks with listeners, or rescan the source code on demand. Hooks whose name is built at runtime are listed as dynamic.
+- **Log file** at `tmp/logs/hooksviewer.log`: every hook of every request, including API calls, tracker hits and console commands, with a timestamp, a request id and the arguments. Rotated above 10 MB.
+- **Safe for Matomo responses**: the panel is written once the response is complete, and only into HTML responses. API calls, JSON controller actions, exports, images, redirects and tracker hits stay byte-exact, and pages keep their doctype.
+- **Theme-aware**: the panel and the argument dumps follow the light or dark Matomo theme.
+- **12 languages**: English, Arabic, Chinese (Simplified), Chinese (Traditional), Dutch, French, German, Italian, Japanese, Polish, Portuguese and Spanish.
 
-Three tools work side by side:
+## Requirements
 
-1. **Inline panel** in the Matomo UI, for super users. Every HTML
-   response gets a collapsible *HooksViewer* panel listing the hooks
-   fired while it was built: at the top of full pages, and inside each
-   widget or AJAX HTML fragment. **Search** the list by hook name, or
-   inside the arguments, and open a hook to see a pretty-printed,
-   multi-line dump of its arguments.
-2. **Hook catalog** under *Administration → Diagnostic → Hooks Viewer*.
-   Every known hook with its description and parameters (taken from
-   the docblock in the source code), the file and line where it is
-   posted, the plugins listening to it, and a ready-to-paste
-   `registerEvents()` snippet. Search it, filter it by category, or
-   show only the hooks that have listeners.
-3. **Log file** at `tmp/logs/hooksviewer.log`. Every hook from every
-   request, including API calls, tracker hits and console commands, is
-   appended with a timestamp, a request id and the arguments. Watch it
-   with `tail -f tmp/logs/hooksviewer.log`.
+- Matomo 6 (`>=6.0.0-b1,<7.0.0-b1`)
+- PHP 8.1 or higher
 
-### Safe for Matomo's responses
+For Matomo 5, use HooksViewer 5.x.
 
-The panel is written once the response is complete, and only when that
-response really is HTML. JSON controllers, API calls, graph data,
-exports, images and tracker hits stay byte-exact, and pages keep their
-doctype, so the dashboard, widgets and third-party clients keep working
-while you explore.
+## Installation / Configuration
 
-### How the hook list stays current
+1. Install the plugin from the Matomo Marketplace (**Administration > Marketplace**), on a development instance only, and activate it.
+2. Browse the page or trigger the workflow you care about, then expand the *HooksViewer* panel and search it, or run `tail -f tmp/logs/hooksviewer.log`.
+3. Click *Open in the hook catalog* on a hook, or go to **Administration > Diagnostic > Hooks Viewer**, to read its documentation and see who listens to it.
+4. **Deactivate the plugin when you are done.**
 
-The list of subscribed events is **discovered automatically** by
-scanning `core/` and `plugins/` for `Piwik::postEvent('…')` call sites
-the first time the plugin runs, and whenever the source tree changes.
-The result is cached in `tmp/cache/hooksviewer-catalog.php`.
+There is no setting.
 
-You do not have to update the plugin when Matomo or a third-party plugin
-introduces new events: they show up the next time the cache is rebuilt.
+## Privacy and data
 
-### Install
+- The panel and the hook catalog are only visible to super users, but the log file records the hooks of every request, including those of other users, with their arguments.
+- Nothing is sent outside your server.
+- The log file and the catalog cache stay in Matomo's `tmp/` directory.
 
-1. Open the Marketplace in your Matomo admin (as a super user).
-2. Search for **HooksViewer**.
-3. Install, then activate.
+## Need help with Matomo?
 
-### Use
+Openmost is an official Matomo Implementation Partner. If you would rather hand over the build, we develop [custom Matomo plugins](https://openmost.com/matomo/services/plugin-development?utm_source=matomo_marketplace&utm_medium=referral&utm_campaign=services&utm_content=hooksviewer) from a written spec, tested on the Matomo versions you run, published on the Marketplace or delivered privately.
 
-1. Activate the plugin while you are exploring or debugging.
-2. Browse the page or trigger the workflow you care about.
-3. Expand the *HooksViewer* panel and search it, or `tail -f` the log.
-4. Click *Open in the hook catalog* on any hook to read its
-   documentation and see who listens to it.
-5. **Deactivate the plugin when you are done.**
+## Support
 
-### Requirements
+- Homepage: <https://openmost.com/matomo/extensions/hooks-viewer>
+- Email: [ronan@openmost.com](mailto:ronan@openmost.com)
+- Source code and issues: <https://github.com/openmost/HooksViewer>
 
-- Matomo 6.x
-- PHP 8.1 or newer
-- MySQL 8.0+ or MariaDB 10.6+
+## Screenshots
 
-For Matomo 5, use HooksViewer 2.x.
+See the `screenshots/` folder: the inline panel with the arguments of a hook, and the hook catalog with its search and filters and the `registerEvents()` snippet of a hook.
 
-### Author
+## License
 
-Built by [Openmost](https://openmost.com/matomo/extensions/hooks-viewer).
-Issues and pull requests welcome at <https://github.com/openmost/HooksViewer>.
-
-### License
-
-GPL v3 or later.
+GPL v3 or later

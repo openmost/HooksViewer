@@ -129,6 +129,9 @@ class HooksViewer extends \Piwik\Plugin
             $map[$hookName] = self::hookToMethod($hookName);
         }
 
+        $map['Template.beforeContent'] = 'renderOpenmostCommunication';
+        $map['Widget.filterWidgets'] = 'addOpenmostCommunicationWidgets';
+        $map['Template.afterEventsReport'] = 'renderOpenmostCommunicationAfterEvents';
         return $map;
     }
 
@@ -669,5 +672,32 @@ class HooksViewer extends \Piwik\Plugin
         }
 
         return self::$htmlRequest = true;
+    }
+
+    /**
+     * Template.beforeContent is taken by the Openmost communications, the hook is still captured for the viewer
+     */
+    public function renderOpenmostCommunication(&$out, $layout, $module = '', $action = '')
+    {
+        $this->captureHook('Template.beforeContent', [$out, $layout, $module, $action]);
+        OpenmostCommunication::beforeContent($out, (string) $layout, (string) $module, (string) $action, $this->getPluginName());
+    }
+
+    /**
+     * Widget.filterWidgets is taken by the Openmost communications, the hook is still captured for the viewer
+     */
+    public function addOpenmostCommunicationWidgets($list)
+    {
+        $this->captureHook('Widget.filterWidgets', [$list]);
+        OpenmostCommunication::filterWidgets($list, $this->getPluginName());
+    }
+
+    /**
+     * Template.afterEventsReport is taken by the Openmost communications, the hook is still captured for the viewer
+     */
+    public function renderOpenmostCommunicationAfterEvents(&$out, $dataTable = null)
+    {
+        $this->captureHook('Template.afterEventsReport', [$out, $dataTable]);
+        OpenmostCommunication::afterEventsReport($out, $this->getPluginName());
     }
 }

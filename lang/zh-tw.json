@@ -1,0 +1,43 @@
+{
+    "HooksViewer": {
+        "HooksViewer": "Hooks 檢視器",
+        "CatalogIntro": "在 core/ 與 plugins/ 中找到的所有事件：它們在哪裡發送、接收什麼參數，以及哪些外掛監聽它們。開發 Matomo 外掛時，可用它來找到合適的 hook。",
+        "ProductionWarning": "開發工具：切勿在正式環境實例上保持啟用 HooksViewer。它會顯示內部參數，並在每次請求時寫入記錄檔。",
+        "LogFile": "每次請求的每個 hook 也會寫入 %s。",
+        "SearchPlaceholder": "搜尋 hook",
+        "SearchInArguments": "在參數中搜尋",
+        "AllCategories": "所有類別",
+        "OnlyWithListeners": "只顯示有監聽器的 hook",
+        "Showing": "%1$s / %2$s",
+        "HooksCount": "%s 個 hook",
+        "OneHook": "1 個 hook",
+        "ListenedCount": "%s 個有監聽器",
+        "RequestId": "請求 %s",
+        "MoreInLog": "記錄檔中還有 %s 個",
+        "NoMatch": "沒有符合搜尋條件的 hook。",
+        "Hook": "Hook",
+        "Description": "說明",
+        "Listeners": "監聽器",
+        "PostedIn": "發送位置",
+        "Parameters": "參數",
+        "NoDescription": "原始碼中沒有說明。",
+        "Dynamic": "動態",
+        "DynamicHelp": "此 hook 有被監聽，但它的名稱是在執行時期組成的（例如 Controller.CoreHome.index），因此在原始碼中找不到。",
+        "ListenExample": "在你的外掛中監聽此 hook",
+        "DeveloperReference": "開發者參考資料",
+        "OpenInCatalog": "在 hook 目錄中開啟",
+        "Rescan": "重新掃描原始碼",
+        "Rescanned": "已重建 hook 目錄。"
+    },
+    "OpenmostCommunication": {
+        "Dismiss": "關閉",
+        "WidgetName": "Openmost：AI 聊天機器人追蹤設定",
+        "AIChatbotsTitle": "需要協助設定 AI 聊天機器人追蹤嗎？",
+        "AIChatbotsBody": "作為 Matomo 官方 Implementation Partner，Openmost 可以替你設定 AI 聊天機器人追蹤，適用於 Matomo On-Premise 或 Cloud。",
+        "AIChatbotsCta": "請人幫我設定",
+        "TrackingPlanTitle": "事件需要手動設定",
+        "TrackingPlanBody": "事件可以衡量點擊、下載、表單送出或影片播放，前提是已完成追蹤設定。作為 Matomo 官方 Implementation Partner，Openmost 為你的網站設計並實作合適的追蹤計畫。",
+        "TrackingPlanCta": "建立我的追蹤計畫",
+        "EventsEnhancedLink": "使用 Events Enhanced 充分運用你的事件資料"
+    }
+}

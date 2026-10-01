@@ -1,0 +1,43 @@
+{
+    "HooksViewer": {
+        "HooksViewer": "Hooks Viewer",
+        "CatalogIntro": "Todos los eventos descubiertos en core/ y plugins/: dónde se publican, qué reciben y qué complementos los escuchan. Úselo para encontrar el hook adecuado al desarrollar un complemento de Matomo.",
+        "ProductionWarning": "Herramienta de desarrollo: no mantenga nunca HooksViewer activado en una instancia de producción. Muestra argumentos internos y escribe un archivo de registro en cada petición.",
+        "LogFile": "Todos los hooks de cada petición también se escriben en %s.",
+        "SearchPlaceholder": "Buscar hooks",
+        "SearchInArguments": "Buscar en los argumentos",
+        "AllCategories": "Todas las categorías",
+        "OnlyWithListeners": "Solo hooks con listeners",
+        "Showing": "%1$s de %2$s",
+        "HooksCount": "%s hooks",
+        "OneHook": "1 hook",
+        "ListenedCount": "%s con listeners",
+        "RequestId": "petición %s",
+        "MoreInLog": "%s más en el archivo de registro",
+        "NoMatch": "Ningún hook coincide con su búsqueda.",
+        "Hook": "Hook",
+        "Description": "Descripción",
+        "Listeners": "Listeners",
+        "PostedIn": "Publicado en",
+        "Parameters": "Parámetros",
+        "NoDescription": "Sin descripción en el código fuente.",
+        "Dynamic": "dinámico",
+        "DynamicHelp": "Este hook tiene listeners, pero su nombre se construye en tiempo de ejecución (como Controller.CoreHome.index), por lo que no aparece en el código fuente.",
+        "ListenExample": "Escuchar este hook en su complemento",
+        "DeveloperReference": "Referencia para desarrolladores",
+        "OpenInCatalog": "Abrir en el catálogo de hooks",
+        "Rescan": "Volver a analizar el código fuente",
+        "Rescanned": "Se ha reconstruido el catálogo de hooks."
+    },
+    "OpenmostCommunication": {
+        "Dismiss": "Descartar",
+        "WidgetName": "Openmost: configuración del seguimiento de chatbots de IA",
+        "AIChatbotsTitle": "¿Necesita ayuda para configurar el seguimiento de chatbots de IA?",
+        "AIChatbotsBody": "Como Implementation Partner oficial de Matomo, Openmost puede configurar el seguimiento de chatbots de IA por usted, en Matomo On-Premise o Cloud.",
+        "AIChatbotsCta": "Solicitar la configuración",
+        "TrackingPlanTitle": "Los eventos deben configurarse manualmente",
+        "TrackingPlanBody": "Los eventos miden clics, descargas, envíos de formularios o reproducciones de vídeo, siempre que se registren. Como Implementation Partner oficial de Matomo, Openmost diseña e implementa un plan de etiquetado adaptado a su sitio.",
+        "TrackingPlanCta": "Crear mi plan de etiquetado",
+        "EventsEnhancedLink": "Saque más partido a sus eventos con Events Enhanced"
+    }
+}

@@ -12,7 +12,7 @@ plugin:
 ### Which Matomo versions are supported?
 
 HooksViewer 6.x runs on Matomo 6 (PHP 8.1+, MySQL 8.0+ or MariaDB
-10.6+). For Matomo 5, use HooksViewer 2.x.
+10.6+). For Matomo 5.10.0 or higher, use HooksViewer 5.x.
 
 ### Why "never install in production"?
 
@@ -50,7 +50,7 @@ are still written to the log file.
 
 ### Where is the hook catalog?
 
-*Administration → Diagnostic → Hooks Viewer*. It lists every hook found
+*Administration > Diagnostic > Hooks Viewer*. It lists every hook found
 in the source code with its description, parameters, call sites and
 listeners, plus the hooks only known through their listeners.
 

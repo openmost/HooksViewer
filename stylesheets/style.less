@@ -1,3 +1,5 @@
+@import "codeTheme.less";
+
 @hv-monospace: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
 // One collapsible panel per HTML response, holding every hook fired while it was built.
@@ -153,7 +155,7 @@
   font-weight: 600;
 }
 
-// Args panel: forced dark background + white text, regardless of theme.
+// Args panel: Openmost code palette (codeTheme.less), light or dark with the theme mode.
 // !important is used here because Matomo themes (light, dark, third-party)
 // override pre/code colors via higher-specificity selectors, and the args
 // dump is unreadable if the theme repaints it.
@@ -161,11 +163,11 @@
   box-sizing: border-box;
   margin: 6px 0 0;
   padding: 0;
-  background: #1a1a1a !important;
-  color: #ffffff !important;
-  border: 1px solid #000 !important;
-  border-radius: 4px;
-  font-family: @hv-monospace;
+  background: var(--om-code-bg) !important;
+  color: var(--om-code-fg) !important;
+  border: 1px solid var(--om-code-border) !important;
+  border-radius: var(--om-code-radius);
+  font-family: var(--om-code-font);
   font-size: 11px;
   max-height: 360px;
   overflow: auto;
@@ -174,7 +176,7 @@
     display: block;
     padding: 10px 12px;
     background: transparent !important;
-    color: #ffffff !important;
+    color: var(--om-code-fg) !important;
     font-family: inherit;
     font-size: inherit;
     line-height: 1.5;
@@ -188,7 +190,7 @@
   // Defend against theme rules that target descendants.
   & * {
     background: transparent !important;
-    color: #ffffff !important;
+    color: var(--om-code-fg) !important;
   }
 }
 

@@ -28,7 +28,7 @@ to the plain list of hook names.
 
 ### Hook catalog
 
-*Administration → Diagnostic → Hooks Viewer* (super users only) lists
+*Administration > Diagnostic > Hooks Viewer* (super users only) lists
 every known hook:
 
 - **Description and parameters**, taken from the docblock written right

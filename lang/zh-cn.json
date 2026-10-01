@@ -1,0 +1,43 @@
+{
+    "HooksViewer": {
+        "HooksViewer": "Hooks Viewer",
+        "CatalogIntro": "在 core/ 和 plugins/ 中发现的所有事件：在哪里触发、接收哪些参数，以及哪些插件在监听。开发 Matomo 插件时，可借此找到合适的钩子。",
+        "ProductionWarning": "开发工具：切勿在生产实例上保持 HooksViewer 启用。它会显示内部参数，并在每次请求时写入日志文件。",
+        "LogFile": "每个请求的所有钩子也会写入 %s。",
+        "SearchPlaceholder": "搜索钩子",
+        "SearchInArguments": "在参数中搜索",
+        "AllCategories": "所有类别",
+        "OnlyWithListeners": "仅显示有监听器的钩子",
+        "Showing": "%1$s / %2$s",
+        "HooksCount": "%s 个钩子",
+        "OneHook": "1 个钩子",
+        "ListenedCount": "%s 个有监听器",
+        "RequestId": "请求 %s",
+        "MoreInLog": "日志文件中还有 %s 条",
+        "NoMatch": "没有与您的搜索匹配的钩子。",
+        "Hook": "钩子",
+        "Description": "描述",
+        "Listeners": "监听器",
+        "PostedIn": "触发位置",
+        "Parameters": "参数",
+        "NoDescription": "源代码中没有描述。",
+        "Dynamic": "动态",
+        "DynamicHelp": "此钩子有监听器，但其名称是在运行时生成的（例如 Controller.CoreHome.index），因此在源代码中找不到。",
+        "ListenExample": "在您的插件中监听此钩子",
+        "DeveloperReference": "开发者参考",
+        "OpenInCatalog": "在钩子目录中打开",
+        "Rescan": "重新扫描源代码",
+        "Rescanned": "钩子目录已重建。"
+    },
+    "OpenmostCommunication": {
+        "Dismiss": "关闭",
+        "WidgetName": "Openmost：AI 聊天机器人跟踪设置",
+        "AIChatbotsTitle": "需要帮助设置 AI 聊天机器人跟踪吗？",
+        "AIChatbotsBody": "作为 Matomo 官方 Implementation Partner，Openmost 可以为您配置 AI 聊天机器人跟踪，适用于 Matomo On-Premise 或 Cloud。",
+        "AIChatbotsCta": "请人帮我配置",
+        "TrackingPlanTitle": "事件需要手动配置",
+        "TrackingPlanBody": "事件可以衡量点击、下载、表单提交或视频播放，前提是已完成跟踪配置。作为 Matomo 官方 Implementation Partner，Openmost 为您的网站设计并实施合适的跟踪方案。",
+        "TrackingPlanCta": "制定我的跟踪方案",
+        "EventsEnhancedLink": "使用 Events Enhanced 充分利用您的事件数据"
+    }
+}

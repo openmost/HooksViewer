@@ -1,0 +1,43 @@
+{
+    "HooksViewer": {
+        "HooksViewer": "Hooks Viewer",
+        "CatalogIntro": "Elke gebeurtenis die in core/ en plugins/ is gevonden: waar ze wordt gepost, wat ze ontvangt en welke plugins ernaar luisteren. Gebruik dit om de juiste hook te vinden wanneer u een Matomo-plugin bouwt.",
+        "ProductionWarning": "Ontwikkeltool: laat HooksViewer nooit geactiveerd op een productie-instantie. Hij toont interne argumenten en schrijft bij elk verzoek een logbestand.",
+        "LogFile": "Elke hook van elk verzoek wordt ook weggeschreven naar %s.",
+        "SearchPlaceholder": "Hooks zoeken",
+        "SearchInArguments": "Zoeken in argumenten",
+        "AllCategories": "Alle categorieën",
+        "OnlyWithListeners": "Alleen hooks met listeners",
+        "Showing": "%1$s van %2$s",
+        "HooksCount": "%s hooks",
+        "OneHook": "1 hook",
+        "ListenedCount": "%s met listeners",
+        "RequestId": "verzoek %s",
+        "MoreInLog": "nog %s in het logbestand",
+        "NoMatch": "Geen hook komt overeen met uw zoekopdracht.",
+        "Hook": "Hook",
+        "Description": "Beschrijving",
+        "Listeners": "Listeners",
+        "PostedIn": "Gepost in",
+        "Parameters": "Parameters",
+        "NoDescription": "Geen beschrijving in de broncode.",
+        "Dynamic": "dynamisch",
+        "DynamicHelp": "Er wordt naar deze hook geluisterd, maar de naam wordt tijdens runtime opgebouwd (zoals Controller.CoreHome.index), dus hij staat niet in de broncode.",
+        "ListenExample": "Luister naar deze hook in uw plugin",
+        "DeveloperReference": "Ontwikkelaarsreferentie",
+        "OpenInCatalog": "Openen in de hookcatalogus",
+        "Rescan": "Broncode opnieuw scannen",
+        "Rescanned": "De hookcatalogus is opnieuw opgebouwd."
+    },
+    "OpenmostCommunication": {
+        "Dismiss": "Sluiten",
+        "WidgetName": "Openmost: instellen van AI-chatbottracking",
+        "AIChatbotsTitle": "Hulp nodig bij het instellen van AI-chatbottracking?",
+        "AIChatbotsBody": "Als officieel Matomo Implementation Partner kan Openmost AI-chatbottracking voor u instellen, op Matomo On-Premise of Cloud.",
+        "AIChatbotsCta": "Laat het voor mij instellen",
+        "TrackingPlanTitle": "Gebeurtenissen moeten handmatig worden ingesteld",
+        "TrackingPlanBody": "Gebeurtenissen meten klikken, downloads, formulierverzendingen of videoweergaven, zodra ze worden gemeten. Als officieel Matomo Implementation Partner ontwerpt en implementeert Openmost een trackingplan dat bij uw site past.",
+        "TrackingPlanCta": "Mijn trackingplan opstellen",
+        "EventsEnhancedLink": "Haal meer uit uw gebeurtenissen met Events Enhanced"
+    }
+}

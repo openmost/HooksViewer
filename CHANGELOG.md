@@ -1,5 +1,10 @@
 ## Changelog
 
+### v6.1.1
+
+- The argument dumps follow the light or dark Matomo theme instead of a forced dark background.
+- 10 more languages: Arabic, Chinese (Simplified), Chinese (Traditional), Dutch, German, Italian, Japanese, Polish, Portuguese and Spanish (12 in total).
+
 ### v6.1.0
 
 **Search in the panel**
@@ -12,7 +17,7 @@
 
 **Hook catalog**
 
-- New *Administration → Diagnostic → Hooks Viewer* page, for super
+- New *Administration > Diagnostic > Hooks Viewer* page, for super
   users: every known hook with its description and parameters (from the
   source docblock), the file and line where it is posted, the plugins
   listening to it, a `registerEvents()` snippet and a link to the

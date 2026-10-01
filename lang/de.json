@@ -1,0 +1,43 @@
+{
+    "HooksViewer": {
+        "HooksViewer": "Hooks Viewer",
+        "CatalogIntro": "Alle in core/ und plugins/ gefundenen Ereignisse: wo sie ausgelöst werden, was sie erhalten und welche Plugins darauf reagieren. Nutzen Sie dies, um beim Entwickeln eines Matomo-Plugins den richtigen Hook zu finden.",
+        "ProductionWarning": "Entwicklungswerkzeug: Lassen Sie HooksViewer niemals auf einer Produktionsinstanz aktiviert. Es zeigt interne Argumente an und schreibt bei jeder Anfrage eine Logdatei.",
+        "LogFile": "Jeder Hook jeder Anfrage wird außerdem in %s geschrieben.",
+        "SearchPlaceholder": "Hooks durchsuchen",
+        "SearchInArguments": "In Argumenten suchen",
+        "AllCategories": "Alle Kategorien",
+        "OnlyWithListeners": "Nur Hooks mit Listenern",
+        "Showing": "%1$s von %2$s",
+        "HooksCount": "%s Hooks",
+        "OneHook": "1 Hook",
+        "ListenedCount": "%s mit Listenern",
+        "RequestId": "Anfrage %s",
+        "MoreInLog": "%s weitere in der Logdatei",
+        "NoMatch": "Kein Hook entspricht Ihrer Suche.",
+        "Hook": "Hook",
+        "Description": "Beschreibung",
+        "Listeners": "Listener",
+        "PostedIn": "Ausgelöst in",
+        "Parameters": "Parameter",
+        "NoDescription": "Keine Beschreibung im Quellcode.",
+        "Dynamic": "dynamisch",
+        "DynamicHelp": "Auf diesen Hook wird reagiert, aber sein Name wird zur Laufzeit gebildet (z. B. Controller.CoreHome.index), daher ist er im Quellcode nicht zu finden.",
+        "ListenExample": "Auf diesen Hook in Ihrem Plugin reagieren",
+        "DeveloperReference": "Entwicklerreferenz",
+        "OpenInCatalog": "Im Hook-Katalog öffnen",
+        "Rescan": "Quellcode erneut scannen",
+        "Rescanned": "Der Hook-Katalog wurde neu erstellt."
+    },
+    "OpenmostCommunication": {
+        "Dismiss": "Ausblenden",
+        "WidgetName": "Openmost: Einrichtung des KI-Chatbot-Trackings",
+        "AIChatbotsTitle": "Brauchen Sie Hilfe beim Einrichten des KI-Chatbot-Trackings?",
+        "AIChatbotsBody": "Als offizieller Matomo Implementation Partner richtet Openmost das KI-Chatbot-Tracking für Sie ein, auf Matomo On-Premise oder Cloud.",
+        "AIChatbotsCta": "Tracking einrichten lassen",
+        "TrackingPlanTitle": "Ereignisse müssen manuell eingerichtet werden",
+        "TrackingPlanBody": "Ereignisse messen Klicks, Downloads, Formularübermittlungen oder Videowiedergaben, sobald sie erfasst werden. Als offizieller Matomo Implementation Partner konzipiert und setzt Openmost einen Tracking-Plan um, der zu Ihrer Website passt.",
+        "TrackingPlanCta": "Meinen Tracking-Plan erstellen",
+        "EventsEnhancedLink": "Holen Sie mit Events Enhanced mehr aus Ihren Ereignissen heraus"
+    }
+}

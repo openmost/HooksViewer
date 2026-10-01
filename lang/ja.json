@@ -1,0 +1,43 @@
+{
+    "HooksViewer": {
+        "HooksViewer": "Hooks Viewer",
+        "CatalogIntro": "core/ と plugins/ で検出されたすべてのイベントについて、どこで発行され、何を受け取り、どのプラグインが監視しているかを示します。Matomo プラグインを開発する際に適切なフックを見つけるのに役立ちます。",
+        "ProductionWarning": "開発用ツール: 本番環境のインスタンスで HooksViewer を有効にしたままにしないでください。内部の引数を表示し、リクエストごとにログファイルを書き込みます。",
+        "LogFile": "すべてのリクエストのすべてのフックは %s にも書き込まれます。",
+        "SearchPlaceholder": "フックを検索",
+        "SearchInArguments": "引数内を検索",
+        "AllCategories": "すべてのカテゴリ",
+        "OnlyWithListeners": "リスナーのあるフックのみ",
+        "Showing": "%2$s 件中 %1$s 件",
+        "HooksCount": "%s 件のフック",
+        "OneHook": "1 件のフック",
+        "ListenedCount": "リスナーあり %s 件",
+        "RequestId": "リクエスト %s",
+        "MoreInLog": "ほか %s 件はログファイルに記録",
+        "NoMatch": "検索に一致するフックはありません。",
+        "Hook": "フック",
+        "Description": "説明",
+        "Listeners": "リスナー",
+        "PostedIn": "発行元",
+        "Parameters": "パラメータ",
+        "NoDescription": "ソースコードに説明がありません。",
+        "Dynamic": "動的",
+        "DynamicHelp": "このフックは監視されていますが、名前が実行時に組み立てられる（Controller.CoreHome.index など）ため、ソースコード内には見つかりません。",
+        "ListenExample": "プラグインでこのフックを監視する",
+        "DeveloperReference": "開発者向けリファレンス",
+        "OpenInCatalog": "フックカタログで開く",
+        "Rescan": "ソースコードを再スキャン",
+        "Rescanned": "フックカタログを再構築しました。"
+    },
+    "OpenmostCommunication": {
+        "Dismiss": "閉じる",
+        "WidgetName": "Openmost: AI チャットボットトラッキングの設定",
+        "AIChatbotsTitle": "AI チャットボットトラッキングの設定でお困りですか？",
+        "AIChatbotsBody": "Matomo 公式 Implementation Partner の Openmost が、Matomo On-Premise でも Cloud でも、AI チャットボットトラッキングを代わりに設定します。",
+        "AIChatbotsCta": "設定を依頼する",
+        "TrackingPlanTitle": "イベントは手動で設定する必要があります",
+        "TrackingPlanBody": "イベントを計測すると、クリック、ダウンロード、フォーム送信、動画再生などを把握できます（トラッキングの設定が必要です）。Matomo 公式 Implementation Partner の Openmost が、サイトに合ったトラッキングプランを設計・実装します。",
+        "TrackingPlanCta": "トラッキングプランを作成する",
+        "EventsEnhancedLink": "Events Enhanced でイベントをさらに活用する"
+    }
+}

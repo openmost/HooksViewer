@@ -1,0 +1,43 @@
+{
+    "HooksViewer": {
+        "HooksViewer": "Hooks Viewer",
+        "CatalogIntro": "كل حدث مكتشف في core/ و plugins/: أين يُطلَق، وما الذي يستقبله، وأي التطبيقات تستمع إليه. استخدمه للعثور على الـ hook المناسب عند بناء تطبيق لـ Matomo.",
+        "ProductionWarning": "أداة تطوير: لا تُبقِ HooksViewer مفعّلًا أبدًا على نسخة إنتاج. فهو يعرض معاملات داخلية ويكتب ملف سجل مع كل طلب.",
+        "LogFile": "يُكتب كل hook لكل طلب أيضًا في %s.",
+        "SearchPlaceholder": "البحث في الـ hooks",
+        "SearchInArguments": "البحث في المعاملات",
+        "AllCategories": "جميع الفئات",
+        "OnlyWithListeners": "الـ hooks التي لها مستمعون فقط",
+        "Showing": "%1$s من %2$s",
+        "HooksCount": "%s hook",
+        "OneHook": "hook واحد",
+        "ListenedCount": "%s لها مستمعون",
+        "RequestId": "الطلب %s",
+        "MoreInLog": "%s إضافية في ملف السجل",
+        "NoMatch": "لا يوجد hook يطابق بحثك.",
+        "Hook": "Hook",
+        "Description": "الوصف",
+        "Listeners": "المستمعون",
+        "PostedIn": "يُطلَق في",
+        "Parameters": "المعاملات",
+        "NoDescription": "لا يوجد وصف في الشيفرة المصدرية.",
+        "Dynamic": "ديناميكي",
+        "DynamicHelp": "هناك من يستمع إلى هذا الـ hook، لكن اسمه يُبنى أثناء التشغيل (مثل Controller.CoreHome.index)، لذا لا يوجد في الشيفرة المصدرية.",
+        "ListenExample": "استمع إلى هذا الـ hook في تطبيقك",
+        "DeveloperReference": "مرجع المطوّرين",
+        "OpenInCatalog": "فتح في فهرس الـ hooks",
+        "Rescan": "إعادة فحص الشيفرة المصدرية",
+        "Rescanned": "تمت إعادة بناء فهرس الـ hooks."
+    },
+    "OpenmostCommunication": {
+        "Dismiss": "تجاهل",
+        "WidgetName": "Openmost: إعداد تتبع روبوتات الدردشة بالذكاء الاصطناعي",
+        "AIChatbotsTitle": "هل تحتاج إلى مساعدة في إعداد تتبع روبوتات الدردشة بالذكاء الاصطناعي؟",
+        "AIChatbotsBody": "بصفتها شريك تنفيذ رسمياً لـ Matomo (Implementation Partner)، يمكن لـ Openmost إعداد تتبع روبوتات الدردشة بالذكاء الاصطناعي نيابةً عنك، على Matomo On-Premise أو Cloud.",
+        "AIChatbotsCta": "اطلب إعداده لي",
+        "TrackingPlanTitle": "يجب إعداد الأحداث يدوياً",
+        "TrackingPlanBody": "تقيس الأحداث النقرات والتنزيلات وإرسال النماذج وتشغيل الفيديو، بشرط أن يتم تتبعها. بصفتها شريك تنفيذ رسمياً لـ Matomo (Implementation Partner)، تصمم Openmost خطة تتبع مناسبة لموقعك وتنفذها.",
+        "TrackingPlanCta": "أنشئ خطة التتبع الخاصة بي",
+        "EventsEnhancedLink": "استفد أكثر من أحداثك مع Events Enhanced"
+    }
+}

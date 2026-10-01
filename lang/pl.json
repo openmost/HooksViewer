@@ -1,0 +1,43 @@
+{
+    "HooksViewer": {
+        "HooksViewer": "Hooks Viewer",
+        "CatalogIntro": "Każde zdarzenie wykryte w core/ i plugins/: gdzie jest wywoływane, co otrzymuje i które wtyczki go nasłuchują. Użyj tego, aby znaleźć właściwy hook podczas tworzenia wtyczki Matomo.",
+        "ProductionWarning": "Narzędzie deweloperskie: nigdy nie pozostawiaj HooksViewer aktywnego na instancji produkcyjnej. Pokazuje wewnętrzne argumenty i zapisuje plik logu przy każdym żądaniu.",
+        "LogFile": "Każdy hook każdego żądania jest również zapisywany w %s.",
+        "SearchPlaceholder": "Szukaj hooków",
+        "SearchInArguments": "Szukaj w argumentach",
+        "AllCategories": "Wszystkie kategorie",
+        "OnlyWithListeners": "Tylko hooki z nasłuchującymi",
+        "Showing": "%1$s z %2$s",
+        "HooksCount": "Hooki: %s",
+        "OneHook": "1 hook",
+        "ListenedCount": "Z nasłuchującymi: %s",
+        "RequestId": "żądanie %s",
+        "MoreInLog": "Więcej w pliku logu: %s",
+        "NoMatch": "Żaden hook nie pasuje do wyszukiwania.",
+        "Hook": "Hook",
+        "Description": "Opis",
+        "Listeners": "Nasłuchujący",
+        "PostedIn": "Wywoływany w",
+        "Parameters": "Parametry",
+        "NoDescription": "Brak opisu w kodzie źródłowym.",
+        "Dynamic": "dynamiczny",
+        "DynamicHelp": "Ten hook jest nasłuchiwany, ale jego nazwa jest tworzona w czasie wykonania (np. Controller.CoreHome.index), więc nie występuje w kodzie źródłowym.",
+        "ListenExample": "Nasłuchuj tego hooka w swojej wtyczce",
+        "DeveloperReference": "Dokumentacja dla deweloperów",
+        "OpenInCatalog": "Otwórz w katalogu hooków",
+        "Rescan": "Przeskanuj ponownie kod źródłowy",
+        "Rescanned": "Katalog hooków został odbudowany."
+    },
+    "OpenmostCommunication": {
+        "Dismiss": "Odrzuć",
+        "WidgetName": "Openmost: konfiguracja śledzenia chatbotów AI",
+        "AIChatbotsTitle": "Potrzebujesz pomocy w konfiguracji śledzenia chatbotów AI?",
+        "AIChatbotsBody": "Jako oficjalny partner Matomo (Implementation Partner) Openmost może skonfigurować śledzenie chatbotów AI za Ciebie, w Matomo On-Premise lub Cloud.",
+        "AIChatbotsCta": "Zleć konfigurację",
+        "TrackingPlanTitle": "Zdarzenia trzeba skonfigurować ręcznie",
+        "TrackingPlanBody": "Zdarzenia mierzą kliknięcia, pobrania, wysłane formularze czy odtworzenia wideo, pod warunkiem że są śledzone. Jako oficjalny partner Matomo (Implementation Partner) Openmost projektuje i wdraża plan śledzenia dopasowany do Twojej strony.",
+        "TrackingPlanCta": "Stwórz mój plan śledzenia",
+        "EventsEnhancedLink": "Wyciśnij więcej ze swoich zdarzeń dzięki Events Enhanced"
+    }
+}
