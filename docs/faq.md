@@ -11,7 +11,7 @@ plugin:
 
 ### Which Matomo versions are supported?
 
-HooksViewer 5.x runs on Matomo 5.10.0 or higher. For Matomo 6, use
+HooksViewer 5.x runs on Matomo 5.0.0 or higher. For Matomo 6, use
 HooksViewer 6.x, which adds a search field in the panel and a hook
 catalog page.
 

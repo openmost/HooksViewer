@@ -16,7 +16,7 @@ The search field and the hook catalog page are only available in HooksViewer 6.x
 
 ## Requirements
 
-- Matomo 5.10.0 or higher (`>=5.10.0,<6.0.0-b1`)
+- Matomo 5.0.0 or higher (`>=5.0.0,<6.0.0-b1`)
 
 For Matomo 6, use HooksViewer 6.x.
 

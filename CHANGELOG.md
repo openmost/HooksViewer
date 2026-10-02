@@ -3,7 +3,7 @@
 ### v5.0.0
 
 - The version number now follows the Matomo major version (5.x for Matomo 5).
-- Requires Matomo 5.10.0 or higher (`>=5.10.0,<6.0.0-b1`), for the theme variables used by the argument dumps.
+- Requires Matomo 5.0.0 or higher (`>=5.0.0,<6.0.0-b1`). The theme variables used by the argument dumps and the Openmost banner fall back to the Matomo light theme colors when they are not available (before Matomo 5.10.0).
 - The argument dumps follow the light or dark Matomo theme, including DarkTheme, instead of a forced dark background.
 - Security: the hooks are only printed into the pages of super users, as in v6. The log file still records every request.
 - Fix: the hooks are now gathered in one collapsible *HooksViewer* panel written once the response is complete, at the top of the page or of the widget, as in v6. They were printed where each hook fired, including inside the `<script>` holding the Matomo JS globals, which emptied `piwik.token_auth` and made the report widgets fail with a 401 error.
