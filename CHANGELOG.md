@@ -8,6 +8,7 @@
 - Security: the hooks are only printed into the pages of super users, as in v6. The log file still records every request.
 - Fix: the hooks are now gathered in one collapsible *HooksViewer* panel written once the response is complete, at the top of the page or of the widget, as in v6. They were printed where each hook fired, including inside the `<script>` holding the Matomo JS globals, which emptied `piwik.token_auth` and made the report widgets fail with a 401 error.
 - `tmp/logs/hooksviewer.log` is rotated to `hooksviewer.log.1` above 10 MB.
+- README: the plugin description now shows in the Description tab of the Matomo Marketplace.
 
 ### v2.0.1
 
