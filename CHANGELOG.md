@@ -4,6 +4,7 @@
 
 - The argument dumps follow the light or dark Matomo theme instead of a forced dark background.
 - 10 more languages: Arabic, Chinese (Simplified), Chinese (Traditional), Dutch, German, Italian, Japanese, Polish, Portuguese and Spanish (12 in total).
+- README: the plugin description now shows in the Description tab of the Matomo Marketplace.
 
 ### v6.1.0
 
