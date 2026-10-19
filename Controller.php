@@ -9,12 +9,12 @@
 
 namespace Piwik\Plugins\HooksViewer;
 
-use Piwik\Common;
 use Piwik\Container\StaticContainer;
 use Piwik\Nonce;
 use Piwik\Piwik;
 use Piwik\Plugin\ControllerAdmin;
 use Piwik\Plugin\Manager;
+use Piwik\Request;
 use Piwik\Url;
 
 class Controller extends ControllerAdmin
@@ -38,8 +38,8 @@ class Controller extends ControllerAdmin
         return $this->renderTemplate('index', [
             'hooks' => $this->buildHookList((new HookCatalog())->getHookDetails()),
             'rescanUrl' => $rescanUrl,
-            'rescanned' => Common::getRequestVar('rescanned', 0, 'int') === 1,
-            'initialHook' => Common::getRequestVar('hook', '', 'string'),
+            'rescanned' => Request::fromRequest()->getIntegerParameter('rescanned', 0) === 1,
+            'initialHook' => Request::fromRequest()->getStringParameter('hook', ''),
             'logPath' => HookCatalog::tmpPath() . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'hooksviewer.log',
         ]);
     }
@@ -50,7 +50,7 @@ class Controller extends ControllerAdmin
     public function rescan()
     {
         Piwik::checkUserHasSuperUserAccess();
-        Nonce::checkNonce(self::RESCAN_NONCE, Common::getRequestVar('nonce', '', 'string'));
+        Nonce::checkNonce(self::RESCAN_NONCE, Request::fromRequest()->getStringParameter('nonce', ''));
 
         $catalog = new HookCatalog();
         $catalog->invalidate();
