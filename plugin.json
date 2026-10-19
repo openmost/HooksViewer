@@ -1,7 +1,7 @@
 {
     "name": "HooksViewer",
     "description": "Lists every event hook Matomo fires, with its arguments. For plugin development, never in production.",
-    "version": "5.0.0",
+    "version": "5.1.0",
     "theme": false,
     "require": {
         "matomo": ">=5.0.0,<6.0.0-b1"

@@ -22,6 +22,22 @@ configuration, visitor IPs, request parameters, etc.) and writes a
 log file on every request. Both are useful while debugging and
 unacceptable in production.
 
+### The plugin is activated but shows nothing.
+
+HooksViewer only works when Matomo runs in development mode. Enable it
+with `./console development:enable`, or set `enabled = 1` in the
+`[Development]` section of `config/config.ini.php`. Until then, no hook
+is captured or logged, and super users see a warning on every page. On
+a production instance, uninstall the plugin instead.
+
+### Why are some values shown as `*** (masked)`?
+
+Tokens, passwords, secrets, cookies, sessions, API keys, visitor
+identifiers and IPs are masked in the panel and in the log file, also
+when they appear as URL parameters. To see them on your development
+instance, add `show_sensitive_values = 1` to a `[HooksViewer]` section
+of `config/config.ini.php`.
+
 ### Where do I see the hooks?
 
 Two places, at the same time:
