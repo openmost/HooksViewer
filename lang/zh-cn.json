@@ -27,17 +27,7 @@
         "DeveloperReference": "开发者参考",
         "OpenInCatalog": "在钩子目录中打开",
         "Rescan": "重新扫描源代码",
-        "Rescanned": "钩子目录已重建。"
-    },
-    "OpenmostCommunication": {
-        "Dismiss": "关闭",
-        "WidgetName": "Openmost：AI 聊天机器人跟踪设置",
-        "AIChatbotsTitle": "需要帮助设置 AI 聊天机器人跟踪吗？",
-        "AIChatbotsBody": "作为 Matomo 官方 Implementation Partner，Openmost 可以为您配置 AI 聊天机器人跟踪，适用于 Matomo On-Premise 或 Cloud。",
-        "AIChatbotsCta": "请人帮我配置",
-        "TrackingPlanTitle": "事件需要手动配置",
-        "TrackingPlanBody": "事件可以衡量点击、下载、表单提交或视频播放，前提是已完成跟踪配置。作为 Matomo 官方 Implementation Partner，Openmost 为您的网站设计并实施合适的跟踪方案。",
-        "TrackingPlanCta": "制定我的跟踪方案",
-        "EventsEnhancedLink": "使用 Events Enhanced 充分利用您的事件数据"
+        "Rescanned": "钩子目录已重建。",
+        "DevelopmentModeRequired": "HooksViewer 已启用，但 Matomo 未处于开发模式，因此不会捕获或记录任何钩子。在开发实例上，请启用开发模式 (./console development:enable)。在生产实例上，请卸载 HooksViewer。"
     }
 }

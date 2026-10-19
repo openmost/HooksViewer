@@ -9,6 +9,10 @@
 
 namespace Piwik\Plugins\HooksViewer;
 
+use Piwik\Config;
+use Piwik\Development;
+use Piwik\Notification;
+use Piwik\Notification\Manager as NotificationManager;
 use Piwik\Piwik;
 use Piwik\Plugin\Manager;
 
@@ -67,6 +71,23 @@ class HooksViewer extends \Piwik\Plugin
         'HooksViewer_Rescanned',
     ];
 
+    /** Keys whose values are masked in the dumps, unless show_sensitive_values is enabled. */
+    private const SENSITIVE_KEY_PATTERN = '/token|passw|secret|cookie|authoriz|session|api_?key|private_?key|salt|credential/i';
+
+    /** Exact keys holding visitor identifiers, masked as well. */
+    private const VISITOR_ID_KEYS = ['idvisitor', 'visitorid', 'visitor_id', '_id', 'uid', 'cid', 'ip', 'location_ip'];
+
+    /** Sensitive query string parameters, masked inside string values. */
+    private const SENSITIVE_PARAMETER_PATTERN = '/\b(token_auth|password|passwd|secret|session_?id|api_?key|uid|_id|cid)=[^&\s\'"]+/i';
+
+    private const MASK = '*** (masked)';
+
+    /** Whether sensitive values are masked, read once from [HooksViewer] show_sensitive_values. */
+    private static $maskSensitiveValues = null;
+
+    /** Whether the logs left by a previous development session have been deleted in this request. */
+    private static $logsPurged = false;
+
     /** Cached decision: can this request carry an HTML panel at all? null = not yet decided. */
     private static $htmlRequest = null;
 
@@ -119,6 +140,17 @@ class HooksViewer extends \Piwik\Plugin
      */
     public function registerEvents()
     {
+        // Hook arguments carry configuration, visitor data and request parameters:
+        // nothing is captured or logged unless Matomo runs in development mode.
+        if (!self::isDevelopmentMode()) {
+            self::purgeLogsOnce();
+            return [
+                'AssetManager.getStylesheetFiles' => 'hook_AssetManager_getStylesheetFiles',
+                'Translate.getClientSideTranslationKeys' => 'hook_Translate_getClientSideTranslationKeys',
+                'Platform.initialized' => 'notifyDevelopmentModeRequired',
+            ];
+        }
+
         $map = [];
         foreach ($this->getHooks() as $hookName) {
             $map[$hookName] = self::hookToMethod($hookName);
@@ -129,9 +161,6 @@ class HooksViewer extends \Piwik\Plugin
             $map[$hookName] = self::hookToMethod($hookName);
         }
 
-        $map['Template.beforeContent'] = 'renderOpenmostCommunication';
-        $map['Widget.filterWidgets'] = 'addOpenmostCommunicationWidgets';
-        $map['Template.afterEventsReport'] = 'renderOpenmostCommunicationAfterEvents';
         return $map;
     }
 
@@ -154,6 +183,58 @@ class HooksViewer extends \Piwik\Plugin
     public function deactivate()
     {
         $this->resetAssetCache();
+        self::purgeLogs();
+    }
+
+    public function uninstall()
+    {
+        self::purgeLogs();
+    }
+
+    private static function isDevelopmentMode(): bool
+    {
+        try {
+            return Development::isEnabled();
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Warn super users on every page that the plugin is idle, and why.
+     */
+    public function notifyDevelopmentModeRequired()
+    {
+        if (!self::isHtmlRequest() || !self::currentUserCanSeeHooks()) {
+            return;
+        }
+
+        try {
+            $notification = new Notification(Piwik::translate('HooksViewer_DevelopmentModeRequired'));
+            $notification->title = 'HooksViewer';
+            $notification->context = Notification::CONTEXT_WARNING;
+            NotificationManager::notify('HooksViewer_DevelopmentModeRequired', $notification);
+        } catch (\Throwable $e) {
+            // A missing session must never break the page.
+        }
+    }
+
+    private static function purgeLogsOnce(): void
+    {
+        if (!self::$logsPurged) {
+            self::$logsPurged = true;
+            self::purgeLogs();
+        }
+    }
+
+    private static function purgeLogs(): void
+    {
+        $path = self::logDirectory() . DIRECTORY_SEPARATOR . 'hooksviewer.log';
+        foreach ([$path, $path . '.1'] as $file) {
+            if (is_file($file)) {
+                @unlink($file);
+            }
+        }
     }
 
     private function resetAssetCache(): void
@@ -240,6 +321,10 @@ class HooksViewer extends \Piwik\Plugin
      */
     private function captureHook(string $hookName, array $args): void
     {
+        if (!self::isDevelopmentMode()) {
+            return;
+        }
+
         $index = ++self::$eventIndex;
         $argsText = $this->summariseArgs($args);
 
@@ -288,7 +373,7 @@ class HooksViewer extends \Piwik\Plugin
      */
     private function startOutputBuffer(): void
     {
-        if (self::$bufferStarted || !self::isHtmlRequest()) {
+        if (self::$bufferStarted || !self::isHtmlRequest() || !self::isDevelopmentMode()) {
             return;
         }
 
@@ -468,7 +553,7 @@ class HooksViewer extends \Piwik\Plugin
      */
     private function resolveLogPath()
     {
-        $dir = HookCatalog::tmpPath() . DIRECTORY_SEPARATOR . 'logs';
+        $dir = self::logDirectory();
         if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
             return false;
         }
@@ -540,6 +625,9 @@ class HooksViewer extends \Piwik\Plugin
 
     private function describeString(string $value): string
     {
+        if (self::maskSensitiveValues()) {
+            $value = (string) preg_replace(self::SENSITIVE_PARAMETER_PATTERN, '$1=***', $value);
+        }
         $len = strlen($value);
         if ($len > self::DESCRIBE_MAX_STRING) {
             // mb_strcut never splits a multi-byte character in half.
@@ -574,7 +662,8 @@ class HooksViewer extends \Piwik\Plugin
                 $lines[] = $indent . '… (' . ($count - self::DESCRIBE_MAX_ENTRIES) . ' more)';
                 break;
             }
-            $lines[] = $indent . $this->formatKey($k) . ' => ' . $this->describe($v, $depth + 1) . ',';
+            $described = self::isSensitiveKey($k) ? self::MASK : $this->describe($v, $depth + 1);
+            $lines[] = $indent . $this->formatKey($k) . ' => ' . $described . ',';
         }
 
         return 'array(' . $count . ") [\n" . implode("\n", $lines) . "\n" . $closeIndent . ']';
@@ -602,6 +691,32 @@ class HooksViewer extends \Piwik\Plugin
         }
 
         return 'object(' . $class . ')';
+    }
+
+    private static function isSensitiveKey($key): bool
+    {
+        if (!is_string($key) || !self::maskSensitiveValues()) {
+            return false;
+        }
+        return preg_match(self::SENSITIVE_KEY_PATTERN, $key) === 1
+            || in_array(strtolower($key), self::VISITOR_ID_KEYS, true);
+    }
+
+    /**
+     * Masked by default. A developer who needs the real values sets
+     * show_sensitive_values = 1 in the [HooksViewer] section of config.ini.php.
+     */
+    private static function maskSensitiveValues(): bool
+    {
+        if (self::$maskSensitiveValues === null) {
+            try {
+                $section = Config::getInstance()->HooksViewer;
+                self::$maskSensitiveValues = empty($section['show_sensitive_values']);
+            } catch (\Throwable $e) {
+                self::$maskSensitiveValues = true;
+            }
+        }
+        return self::$maskSensitiveValues;
     }
 
     private function formatKey($key): string
@@ -674,30 +789,8 @@ class HooksViewer extends \Piwik\Plugin
         return self::$htmlRequest = true;
     }
 
-    /**
-     * Template.beforeContent is taken by the Openmost communications, the hook is still captured for the viewer
-     */
-    public function renderOpenmostCommunication(&$out, $layout, $module = '', $action = '')
+    private static function logDirectory(): string
     {
-        $this->captureHook('Template.beforeContent', [$out, $layout, $module, $action]);
-        OpenmostCommunication::beforeContent($out, (string) $layout, (string) $module, (string) $action, $this->getPluginName());
-    }
-
-    /**
-     * Widget.filterWidgets is taken by the Openmost communications, the hook is still captured for the viewer
-     */
-    public function addOpenmostCommunicationWidgets($list)
-    {
-        $this->captureHook('Widget.filterWidgets', [$list]);
-        OpenmostCommunication::filterWidgets($list, $this->getPluginName());
-    }
-
-    /**
-     * Template.afterEventsReport is taken by the Openmost communications, the hook is still captured for the viewer
-     */
-    public function renderOpenmostCommunicationAfterEvents(&$out, $dataTable = null)
-    {
-        $this->captureHook('Template.afterEventsReport', [$out, $dataTable]);
-        OpenmostCommunication::afterEventsReport($out, $this->getPluginName());
+        return HookCatalog::tmpPath() . DIRECTORY_SEPARATOR . 'logs';
     }
 }

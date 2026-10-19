@@ -1,5 +1,12 @@
 ## Changelog
 
+### v6.2.0
+
+- Security: HooksViewer only captures and logs hooks when Matomo runs in development mode (`[Development] enabled = 1`, or `./console development:enable`). Otherwise no hook is captured, no panel is shown, nothing is logged, existing log files are deleted, and super users see a warning on every page asking to enable development mode or to uninstall the plugin.
+- Security: sensitive values are masked in the panel and in the log file (tokens, passwords, secrets, cookies, sessions, API keys, visitor identifiers and IPs, and the same parameters inside URLs). Set `show_sensitive_values = 1` in the `[HooksViewer]` section of `config/config.ini.php` to show them.
+- The log files are deleted when the plugin is deactivated or uninstalled.
+- Removed the Openmost banners and widget.
+
 ### v6.1.1
 
 - The argument dumps follow the light or dark Matomo theme instead of a forced dark background.

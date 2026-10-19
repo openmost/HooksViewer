@@ -4,7 +4,7 @@
 
 See every event hook Matomo dispatches, in which order and with which arguments, to find the right hook when you build a Matomo plugin.
 
-> **Never install this plugin on a production instance.** It is a development tool: it shows internal hook arguments (configuration values, visitor data, request parameters) and writes a log file on every request.
+> **Never install this plugin on a production instance.** It is a development tool: it shows internal hook arguments (configuration values, visitor data, request parameters) and writes a log file on every request. HooksViewer stays idle unless Matomo runs in development mode.
 
 ### Features
 
@@ -27,15 +27,23 @@ For Matomo 5, use HooksViewer 5.x.
 ### Installation / Configuration
 
 1. Install the plugin from the Matomo Marketplace (**Administration > Marketplace**), on a development instance only, and activate it.
-2. Browse the page or trigger the workflow you care about, then expand the *HooksViewer* panel and search it, or run `tail -f tmp/logs/hooksviewer.log`.
-3. Click *Open in the hook catalog* on a hook, or go to **Administration > Diagnostic > Hooks Viewer**, to read its documentation and see who listens to it.
-4. **Deactivate the plugin when you are done.**
+2. Enable the Matomo development mode with `./console development:enable` (or `enabled = 1` in the `[Development]` section of `config/config.ini.php`). Without it, the plugin captures nothing and warns super users on every page.
+3. Browse the page or trigger the workflow you care about, then expand the *HooksViewer* panel and search it, or run `tail -f tmp/logs/hooksviewer.log`.
+4. Click *Open in the hook catalog* on a hook, or go to **Administration > Diagnostic > Hooks Viewer**, to read its documentation and see who listens to it.
+5. **Deactivate the plugin when you are done.**
 
-There is no setting.
+Sensitive values (tokens, passwords, secrets, cookies, sessions, API keys, visitor identifiers and IPs) are masked in the panel and in the log file. To show them, add this to `config/config.ini.php`:
+
+```ini
+[HooksViewer]
+show_sensitive_values = 1
+```
 
 ### Privacy and data
 
 - The panel and the hook catalog are only visible to super users, but the log file records the hooks of every request, including those of other users, with their arguments.
+- Nothing is captured or logged unless Matomo runs in development mode. Outside development mode, and when the plugin is deactivated or uninstalled, the log files are deleted.
+- Sensitive values are masked by default, see above.
 - Nothing is sent outside your server.
 - The log file and the catalog cache stay in Matomo's `tmp/` directory.
 

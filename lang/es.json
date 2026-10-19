@@ -27,17 +27,7 @@
         "DeveloperReference": "Referencia para desarrolladores",
         "OpenInCatalog": "Abrir en el catálogo de hooks",
         "Rescan": "Volver a analizar el código fuente",
-        "Rescanned": "Se ha reconstruido el catálogo de hooks."
-    },
-    "OpenmostCommunication": {
-        "Dismiss": "Descartar",
-        "WidgetName": "Openmost: configuración del seguimiento de chatbots de IA",
-        "AIChatbotsTitle": "¿Necesita ayuda para configurar el seguimiento de chatbots de IA?",
-        "AIChatbotsBody": "Como Implementation Partner oficial de Matomo, Openmost puede configurar el seguimiento de chatbots de IA por usted, en Matomo On-Premise o Cloud.",
-        "AIChatbotsCta": "Solicitar la configuración",
-        "TrackingPlanTitle": "Los eventos deben configurarse manualmente",
-        "TrackingPlanBody": "Los eventos miden clics, descargas, envíos de formularios o reproducciones de vídeo, siempre que se registren. Como Implementation Partner oficial de Matomo, Openmost diseña e implementa un plan de etiquetado adaptado a su sitio.",
-        "TrackingPlanCta": "Crear mi plan de etiquetado",
-        "EventsEnhancedLink": "Saque más partido a sus eventos con Events Enhanced"
+        "Rescanned": "Se ha reconstruido el catálogo de hooks.",
+        "DevelopmentModeRequired": "HooksViewer está activado pero Matomo no está en modo de desarrollo, por lo que no se captura ni se registra ningún hook. En una instancia de desarrollo, active el modo de desarrollo (./console development:enable). En una instancia de producción, desinstale HooksViewer."
     }
 }

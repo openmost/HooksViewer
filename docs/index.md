@@ -106,8 +106,25 @@ Use the log file to observe their hooks.
 - Event guide: <https://developer.matomo.org/guides/events>
 - Core event reference: <https://developer.matomo.org/api-reference/events>
 
+### Development mode and masked values
+
+HooksViewer only runs when Matomo is in development mode (`./console
+development:enable`, or `enabled = 1` in the `[Development]` section of
+`config/config.ini.php`). Outside development mode it captures and logs
+nothing, deletes its log files, and super users see a warning on every
+page asking to enable development mode or to uninstall the plugin.
+
+Tokens, passwords, secrets, cookies, sessions, API keys, visitor
+identifiers and IPs are masked in the panel and in the log file,
+including inside URLs. To see them on a development instance:
+
+```ini
+[HooksViewer]
+show_sensitive_values = 1
+```
+
 ### Reminder
 
 This plugin exposes internal arguments (including configuration values
-and visitor data) and writes a log file on every request. **Never
-install it on a production instance.**
+and visitor data) and writes a log file on every request while
+development mode is on. **Never install it on a production instance.**

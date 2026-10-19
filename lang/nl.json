@@ -27,17 +27,7 @@
         "DeveloperReference": "Ontwikkelaarsreferentie",
         "OpenInCatalog": "Openen in de hookcatalogus",
         "Rescan": "Broncode opnieuw scannen",
-        "Rescanned": "De hookcatalogus is opnieuw opgebouwd."
-    },
-    "OpenmostCommunication": {
-        "Dismiss": "Sluiten",
-        "WidgetName": "Openmost: instellen van AI-chatbottracking",
-        "AIChatbotsTitle": "Hulp nodig bij het instellen van AI-chatbottracking?",
-        "AIChatbotsBody": "Als officieel Matomo Implementation Partner kan Openmost AI-chatbottracking voor u instellen, op Matomo On-Premise of Cloud.",
-        "AIChatbotsCta": "Laat het voor mij instellen",
-        "TrackingPlanTitle": "Gebeurtenissen moeten handmatig worden ingesteld",
-        "TrackingPlanBody": "Gebeurtenissen meten klikken, downloads, formulierverzendingen of videoweergaven, zodra ze worden gemeten. Als officieel Matomo Implementation Partner ontwerpt en implementeert Openmost een trackingplan dat bij uw site past.",
-        "TrackingPlanCta": "Mijn trackingplan opstellen",
-        "EventsEnhancedLink": "Haal meer uit uw gebeurtenissen met Events Enhanced"
+        "Rescanned": "De hookcatalogus is opnieuw opgebouwd.",
+        "DevelopmentModeRequired": "HooksViewer is geactiveerd, maar Matomo staat niet in ontwikkelmodus, dus er worden geen hooks vastgelegd of gelogd. Schakel op een ontwikkelinstantie de ontwikkelmodus in (./console development:enable). Verwijder HooksViewer op een productie-instantie."
     }
 }
