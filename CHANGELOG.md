@@ -1,5 +1,9 @@
 ## Changelog
 
+### v6.2.1
+
+- Request parameters are read with `Piwik\Request` instead of the deprecated `Common::getRequestVar`, ready for the next Matomo versions.
+
 ### v6.2.0
 
 - Security: HooksViewer only captures and logs hooks when Matomo runs in development mode (`[Development] enabled = 1`, or `./console development:enable`). Otherwise no hook is captured, no panel is shown, nothing is logged, existing log files are deleted, and super users see a warning on every page asking to enable development mode or to uninstall the plugin.
